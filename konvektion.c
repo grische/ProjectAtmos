@@ -5,7 +5,7 @@
 #define FALSE 0
 #define TRUE 1
 
-static int sortfunc (const void *a, const void *b) {
+static int sortfunc (const void *a, const void *b) {                     /* Sortfunktion */
   
   if(*((double*)a)<*((double*)b)) {
     return 1;
@@ -18,7 +18,7 @@ static int sortfunc (const void *a, const void *b) {
 }
   
 
-int main() {
+int main() {                                                    /* Festlegung der Variablen und Groessen */
   
   double g=9.8065;
   double cp=1004;
@@ -45,57 +45,56 @@ int main() {
   double *plyr=calloc(nlev,sizeof(double));
 
   
-  for(ilev=0; ilev<nlev; ilev++) {
+  for(ilev=0; ilev<nlev; ilev++) {                              /* Bestimung der Drucklevels p[ilev] */
     p[ilev]=p0*ilev/(nlev-1);
     
    printf("%d %f\n", ilev, p[ilev]);
    
   }
   
-  for(ilyr=0; ilyr<nlyr; ilyr+=1) {
+  for(ilyr=0; ilyr<nlyr; ilyr+=1) {                             /* Temperatur für alle Layers 255K */
     T[ilyr]=255;
     
   }
   
-  while (T[nlyr-1]<400) {
+  while (T[nlyr-1]<400) {                                       /* Loop begrenzt bis 400K */
     printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
-    deltaT=H/(deltap*100.0)/ cp*g*deltat;
-    //deltaT = H * g / (deltap * cp) * deltat;
+    deltaT=(H*g*deltat)/((deltap*100.0)*cp);                    /* Formel für Temperaturanstieg der untersten Schicht */
     T[nlyr-1]+= deltaT;
+    printf("%f\n", deltaT);
   
-  
-    for(ilyr=0; ilyr<nlyr; ilyr++) {
+    for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Berechnung des Drucks in den Layers */
       plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
       //printf("%d %f\n", ilyr, plyr[ilyr]);
     }
   
     
-    for (ilyr=0; ilyr<nlyr; ilyr++) {
+    for (ilyr=0; ilyr<nlyr; ilyr++) {                           /* Umrechnung von T auf theta */
       theta[ilyr]=pow(p0/plyr[ilyr], kappa)*T[ilyr];
       //printf("%d %f\n", ilyr, theta[ilyr]);
     }
     
     instabil = FALSE;
     
-    for (ilyr=0; ilyr<nlyr;ilyr++) {
+    for (ilyr=0; ilyr<nlyr;ilyr++) {                            /* Prüfung auf Instabil */
       if (theta[ilyr+1]>theta[ilyr]) {
 	instabil = TRUE;
 	break;
       }
     }
       
-    if (instabil) {
+    if (instabil) {                                             /* Sortierung - Konvektion */
       qsort (theta, nlyr, sizeof(double), sortfunc);
       printf ("Konvektion :-)\n");
     }
     
-    for (ilyr=0; ilyr<nlyr; ilyr++) {
-      //theta[ilyr]=pow(p0/plyr[ilyr], kappa)*T[ilyr];
-      T[ilyr] = theta[ilyr] * pow(plyr[ilyr]/p0, kappa);
+    for (ilyr=0; ilyr<nlyr; ilyr++) {                           /* Umrechnung von theta auf T */
+      T[ilyr] = theta[ilyr] /  (pow(p0/plyr[ilyr], kappa));
+      printf("%d %f\n", ilyr, T[ilyr]);
       //printf("%d %f\n", ilyr, theta[ilyr]);
     }
   }
   return 0;
-}
+}                                                               /* Loop Ende */
 
