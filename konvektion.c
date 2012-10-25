@@ -34,7 +34,6 @@ double alpha (double T) {
 
 int main() {                                                     /* Definition of Variables and Quantities  */
   
-
   double cp=1004;  /* J/kg K */
   double H=100;  /* W/m^2 = J*/
   double p0=1000;  /* hPa */
