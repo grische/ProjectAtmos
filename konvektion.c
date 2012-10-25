@@ -26,6 +26,8 @@ static int sortfunc (const void *a, const void *b) {             /* Defining sor
 }
   
 
+
+
 double alpha (double T) {
   double x = -( R * T )/( g * M );
   return x;
