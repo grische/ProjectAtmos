@@ -9,9 +9,11 @@
 #define R 8.31447     /* J/(mol K) */
 #define M 0.0289644   /* kg / mol */
 #define g 9.8065      /* m/s^2 */
+#define SIGMA 5.67E-8   /* W / (m^2 K^4) */
+#define EPSILON 0.99   /* break condition TMAX*EPS */
 
-#define TMAX 400.0    /* K */
-#define TMIN 200.0    /* K */
+#define TMAX 255.0    /* K */
+#define TMIN 100.0    /* K */
 
 static int sortfunc (const void *a, const void *b) {             /* Defining sortfunc */
   
@@ -37,14 +39,14 @@ double alpha (double T) {
 int main() {                                                     /* Definition of Variables and Quantities  */
   
   double cp=1004;  /* J/kg K */
-  double H=100;  /* W/m^2 = J*/
+  double Esol=235;  /* W/m^2 = J*/
   double p0=1000;  /* hPa */
   double deltaT=0; /* K */
-  double deltat=10;  /* s */
+  double deltat=100;  /* s */
   double Ra=287; /* J/kg K */
-  
+  double H=0; /* [Esol] */
+
   int timesteps = 0;
-  
   int ilev=0;
   int ilyr=0;
   int nlyr=100;  /* Number of Layers */
@@ -77,13 +79,15 @@ int main() {                                                     /* Definition o
   }
   
   for(ilyr=0; ilyr<nlyr; ilyr+=1) {                             /* Temperature for all Layers 255K */
-    T[ilyr]=255;
+    T[ilyr]=TMIN;
     
   }
   
-  while (T[nlyr-1] < TMAX) {                                       /* Loop limited to 400K */
+  while (T[nlyr-1] < TMAX*EPSILON) {                                       /* Loop limited to 400K */
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
+
+    H=Esol-(SIGMA*pow(T[nlyr-1],4));
     deltaT=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
     T[nlyr-1]+= deltaT;
     // printf("%f\n", deltaT);
@@ -119,7 +123,7 @@ int main() {                                                     /* Definition o
       //printf("%d %f\n", ilyr, theta[ilyr]);
     }
 
-    if(timesteps % (int)(5000000/deltat/nlyr) == 0) {
+    if(timesteps % (int)(10000000/deltat/nlyr) == 0) {
       printf ("timestep %d\n", timesteps);
 
       pladv(1);     /* select subpage 1  */
