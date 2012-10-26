@@ -26,9 +26,10 @@ static int sortfunc (const void *a, const void *b) {             /* Defining sor
   return 0;
   
 }
-  
 
-
+static double boltzmann(const double T) {
+  return SIGMA * pow(T,4);
+}
 
 double alpha (double T) {
   double x = -( R * T )/( g * M );
@@ -87,7 +88,7 @@ int main() {                                                     /* Definition o
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
 
-    H=Esol-(SIGMA*pow(T[nlyr-1],4));
+    H=Esol-boltzmann(T[nlyr-1]);
     deltaT=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
     T[nlyr-1]+= deltaT;
     // printf("%f\n", deltaT);
