@@ -62,6 +62,7 @@ int main() {                                                     /* Definition o
   double *theta=calloc(nlev,sizeof(double));
   double *plyr=calloc(nlyr,sizeof(double));
   double *z=calloc(nlyr,sizeof(double));
+  double *deltaz=calloc(nlyr,sizeof(double));
 
 
   plscolbg (255, 255, 255);   /* background color white */
@@ -141,8 +142,14 @@ int main() {                                                     /* Definition o
 
       plcol0 (15);                        /* color black */
 
-      for (ilyr=0; ilyr<nlyr; ilyr++) {
-	z[ilyr]=alpha(T[ilyr])*log(plyr[ilyr]/p0);
+      for (ilyr=0;ilyr<nlyr; ilyr++) {
+	deltaz[ilyr]=(Ra*T[ilyr]*deltap)/(plyr[ilyr]*g);  
+      }
+      
+      z[nlyr-1]=0;
+
+      for (ilyr=nlyr-1; ilyr>-1; ilyr--) {
+	z[ilyr]=z[ilyr+1]+deltaz[ilyr];
       }
 
       printf ("time: %d\n", (int)(timesteps*deltat));
@@ -162,9 +169,9 @@ int main() {                                                     /* Definition o
       plcol0 (15);                        /* color black */
 
 
-      //for (ilyr=0; ilyr<nlyr; ilyr++) {
-      //printf("z[%d]=%f,  plyr[%d]=%f\n", ilyr, z[ilyr], ilyr, plyr[ilyr]);
-      //}
+      for (ilyr=0; ilyr<nlyr; ilyr++) {
+      printf("z[%d]=%f,  plyr[%d]=%f\n", ilyr, z[ilyr], ilyr, plyr[ilyr]);
+      }
 
       sleep(1);
     }
