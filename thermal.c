@@ -56,13 +56,16 @@ int main() {
    * quasi  L[ilyr] = L[ilyr+1] exp(-dtau)  +  B(T[ilyr]) (1 - exp(-dtau))
    *
    */
-  for (ilyr=nlyr-1;ilyr>0; ilyr--) {
+  for (mu=dmu; mu <= 1; mu += dmu) {
+    for (ilyr=nlyr-1;ilyr>0; ilyr--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-    for (mu=dmu; mu <= 1; mu += dmu) {
       L[ilyr]=Lup(dtau/mu, L[ilyr+1], T[ilyr]);
-      Eup[ilyr] += L[ilyr]*mu*dmu;
+      Eup[ilyr] += L[ilyr]*mu*dmu*2.0*M_PI;
     }
-    Eup[ilyr] *= 2*M_PI;
+  }
+
+  // output of Eup and L
+  for (ilyr=0; ilyr < nlyr; ilyr++) {
     printf ("ilyr = %d, Eup = %f, Lbelow = %f\n" ,ilyr,  Eup[ilyr], L[ilyr]);
   }
 
