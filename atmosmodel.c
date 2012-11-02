@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <plplot/plplot.h>
+#include "schwarz.h"
 
 #define FALSE 0
 #define TRUE 1
@@ -25,10 +26,6 @@ static int sortfunc (const void *a, const void *b) {             /* Defining sor
   }  
   return 0;
   
-}
-
-static double boltzmann(const double T) {
-  return SIGMA * pow(T,4);
 }
 
 double alpha (double T) {
