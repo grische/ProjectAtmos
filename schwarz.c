@@ -45,7 +45,7 @@ int main() {
   double mu;
   
   /* Remove next for-loop for optimization, it is not needed */
-  for(ilyr=0; ilyr < nlyr; ilyr++) {
+  for(ilev=0; ilev < nlev; ilev++) {
     Eup[ilyr] = 0;
     Edow[ilyr] = 0;
   }
