@@ -37,27 +37,26 @@ int main() {
 
   const int nlyr = 10;
   const int nlev = nlyr+1;
-  const double dmu = 0.01;
+  const double dmu = 0.001;
   const double dtau =1.000/nlyr;
 
   double *Lup=calloc(nlev, sizeof(double));
   double *Ldow=calloc(nlev, sizeof(double));
-  double *Eup=calloc(nlyr, sizeof(double));
-  double *Edow=calloc(nlyr, sizeof(double));
+  double *Eup=calloc(nlev, sizeof(double));
+  double *Edow=calloc(nlev, sizeof(double));
   double *Enet=calloc(nlyr, sizeof(double));
 
 
 
   int ilyr;
+  int ilev;
   double mu;
   
+  /* Remove next for-loop for optimization, it is not needed */
   for(ilyr=0; ilyr < nlyr; ilyr++) {
     Eup[ilyr] = 0;
-    Edow [ilyr] =0;
+    Edow[ilyr] = 0;
   }
-
-  //surface L
-  Lup[nlev-1] = planck(Tsurf);
 
   /*
    * UP
@@ -70,19 +69,18 @@ int main() {
    * quasi  Lup[ilyr] = Lup[ilyr+1] exp(-dtau)  +  B(T[ilyr]) (1 - exp(-dtau))
    *
    */
+  //Calculation of Eup from surface
+  Lup[nlev-1] = planck(Tsurf);
+  Eup[nlev-1] = Lup[nlev-1]*M_PI;
+
   for (mu=dmu; mu <= 1; mu += dmu) {
-    for (ilyr=nlyr-1;ilyr>=0; ilyr--) {
+    for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-      Lup[ilyr]=FLup(dtau/mu, Lup[ilyr+1], T[ilyr]);
-      Eup[ilyr] += Lup[ilyr]*mu*dmu*2.0*M_PI;
+      Lup[ilev]=FLup(dtau/mu, Lup[ilev+1], T[ilev]);
+      Eup[ilev] += Lup[ilev]*mu*dmu*2.0*M_PI;
     }
   }
   
-  //Calculation of Eup from surface
-
-   for (mu=dmu; mu <= 1; mu += dmu) {
-     Eup[nlyr]  = planck (Tsurf)*M_PI;
-       }
   /*
    * DOWN
    * 
@@ -90,26 +88,28 @@ int main() {
    * quasi Ldow[ilyr] = Ldow[ilyr-1] exp(-dtau) + B(T[ilyr]) (1-exp(-dtau))
    *
    */
-  // Ldow[0]=planck(T[0]);
-  //printf("T[0] = %f\n", T[0]);
-
+  Ldow[0] = 0;
+  Edow[0] = 0;
+  
   for (mu=dmu; mu <= 1; mu += dmu) {
-    for (ilyr=0; ilyr<nlyr; ilyr++) {
+    for (ilev=1; ilev<nlev; ilev++) {
       
-      Ldow[ilyr]= FLdow(dtau/mu, Ldow[ilyr-1], T[ilyr]); 
-      Edow[ilyr] += Ldow[ilyr]*mu*dmu*2.0*M_PI;
+      Ldow[ilev]= FLdow(dtau/mu, Ldow[ilev-1], T[ilev-1]); 
+      Edow[ilev] += Ldow[ilev]*mu*dmu*2.0*M_PI;
     }
   }
 
   // Net Energy per layer: Enet
 
   for (ilyr=0; ilyr<nlyr; ilyr++) {
-    Enet[ilyr]=Eup[ilyr+1]+Edow[ilyr-1]-Eup[ilyr]-Edow[ilyr];
+    Enet[ilyr]=Eup[ilyr+1]+Edow[ilyr]-Eup[ilyr]-Edow[ilyr+1];
   }
 
   // output of Eup, L, Edow and Enet
-  for (ilyr=0; ilyr < nlyr; ilyr++) {
-    printf ("ilyr = %d, Eup = %f, Lbelow = %f,Edow = %f, Enet = %f\n" ,ilyr,  Eup[ilyr], Lup[ilyr], Edow[ilyr], Enet[ilyr]);
+  for (ilev=0; ilev < nlev; ilev++) {
+    printf (  "--%d-- ilev, Eup = %f, Lbelow = %f,Edow = %f \t--%d--\n" ,ilev,  Eup[ilev], Lup[ilev], Edow[ilev], ilev);
+    if(ilev < nlyr)
+      printf ("  %d   ilyr, Enetto = %f                      \t\t\t  %d\n", ilev, Enet[ilev], ilev);
   }
 
   //printf("Die, die, die! %d %f\n", nlev+nlyr,L[nlev+nlyr+500]); 
