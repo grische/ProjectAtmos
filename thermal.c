@@ -2,24 +2,16 @@
 #include <stdlib.h>
 #include <math.h>
 
-double planck (double T) {
+double boltzmann (double T) {
   double B=(5.67E-8)*pow(T,4)/M_PI;
   return B;
 }
 
-double FLup (double tau, const double Lbelow, const double Tlyr) {
-  double FLup = Lbelow * exp(-tau) + planck(Tlyr)*(1.0-exp(-tau));
+double TEmission (double tau, const double Lbelow, const double Tlyr) {
+  double TEmission = Lbelow * exp(-tau) + boltzmann(Tlyr)*(1.0-exp(-tau));
   //printf ("Lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, Lup, Lbelow, Tlyr);
-  return FLup;
+  return TEmission;
 }
-
-double FLdow (double tau, const double Labove, const double Tlyr) {
-  double FLdow = Labove * exp(-tau) + planck(Tlyr)*(1-exp(-tau));
-  return FLdow;
-
-
-}
-
 
 int main() {
   const double Tsurf = 255;
@@ -70,13 +62,13 @@ int main() {
    *
    */
   //Calculation of Eup from surface
-  Lup[nlev-1] = planck(Tsurf);
+  Lup[nlev-1] = boltzmann(Tsurf);
   Eup[nlev-1] = Lup[nlev-1]*M_PI;
 
   for (mu=dmu; mu <= 1; mu += dmu) {
     for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-      Lup[ilev]=FLup(dtau/mu, Lup[ilev+1], T[ilev]);
+      Lup[ilev]=TEmission(dtau/mu, Lup[ilev+1], T[ilev]);
       Eup[ilev] += Lup[ilev]*mu*dmu*2.0*M_PI;
     }
   }
@@ -94,7 +86,7 @@ int main() {
   for (mu=dmu; mu <= 1; mu += dmu) {
     for (ilev=1; ilev<nlev; ilev++) {
       
-      Ldow[ilev]= FLdow(dtau/mu, Ldow[ilev-1], T[ilev-1]); 
+      Ldow[ilev]= TEmission(dtau/mu, Ldow[ilev-1], T[ilev-1]); 
       Edow[ilev] += Ldow[ilev]*mu*dmu*2.0*M_PI;
     }
   }
