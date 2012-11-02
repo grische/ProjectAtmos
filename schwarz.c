@@ -2,52 +2,32 @@
 #include <stdlib.h>
 #include <math.h>
 
-double boltzmann (double T) {
+double boltzmann (const double T) {
   double B=(5.67E-8)*pow(T,4)/M_PI;
   return B;
 }
 
 double TEmission (double tau, const double Lbelow, const double Tlyr) {
   double TEmission = Lbelow * exp(-tau) + boltzmann(Tlyr)*(1.0-exp(-tau));
-  //printf ("Lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, Lup, Lbelow, Tlyr);
+  //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
   return TEmission;
 }
 
-int main() {
-  const double Tsurf = 255;
-  const double T[] = {108.801737
-		,148.944353
-		,172.361770
-		,189.763422
-		,203.897599
-		,215.935755
-		,226.497577
-		,235.954833
-		,244.549807
-		,252.450005
-  };
+int schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup) {
 
-  const int nlyr = 10;
-  const int nlev = nlyr+1;
   const double dmu = 0.001;
-  const double dtau =1.000/nlyr;
+  const double dtau = tau/(nlev-1);
 
-  double *Lup=calloc(nlev, sizeof(double));
-  double *Ldow=calloc(nlev, sizeof(double));
-  double *Eup=calloc(nlev, sizeof(double));
-  double *Edow=calloc(nlev, sizeof(double));
-  double *Enet=calloc(nlyr, sizeof(double));
+  double *lup=calloc(nlev, sizeof(double));
+  double *ldn=calloc(nlev, sizeof(double));
 
-
-
-  int ilyr;
   int ilev;
   double mu;
   
   /* Remove next for-loop for optimization, it is not needed */
   for(ilev=0; ilev < nlev; ilev++) {
-    Eup[ilyr] = 0;
-    Edow[ilyr] = 0;
+    eup[ilev] = 0;
+    edn[ilev] = 0;
   }
 
   /*
@@ -57,53 +37,44 @@ int main() {
    *
    * Wegen up: ilev -1 = ilyr
    *
-   * Lup[ilev] = Lup[ilev+1] exp(-dtau)  +  B(T[ilyr+1]) ( 1 - exp(-dtau) )
-   * quasi  Lup[ilyr] = Lup[ilyr+1] exp(-dtau)  +  B(T[ilyr]) (1 - exp(-dtau))
+   * lup[ilev] = lup[ilev+1] exp(-dtau)  +  B(T[ilyr+1]) ( 1 - exp(-dtau) )
+   * quasi  lup[ilyr] = lup[ilyr+1] exp(-dtau)  +  B(T[ilyr]) (1 - exp(-dtau))
    *
    */
-  //Calculation of Eup from surface
-  Lup[nlev-1] = boltzmann(Tsurf);
-  Eup[nlev-1] = Lup[nlev-1]*M_PI;
+  //Calculation of eup from surface
+  lup[nlev-1] = boltzmann(Ts);
+  eup[nlev-1] = lup[nlev-1]*M_PI;
 
   for (mu=dmu; mu <= 1; mu += dmu) {
     for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-      Lup[ilev]=TEmission(dtau/mu, Lup[ilev+1], T[ilev]);
-      Eup[ilev] += Lup[ilev]*mu*dmu*2.0*M_PI;
+      lup[ilev]=TEmission(dtau/mu, lup[ilev+1], T[ilev]);
+      eup[ilev] += lup[ilev]*mu*dmu*2.0*M_PI;
     }
   }
   
   /*
    * DOWN
    * 
-   * Ldow[ilev] = Ldow[ilev-1] exp(-dtau) + B(T[ilyr-1]) ( 1-exp(-dtau))
-   * quasi Ldow[ilyr] = Ldow[ilyr-1] exp(-dtau) + B(T[ilyr]) (1-exp(-dtau))
+   * ldn[ilev] = ldn[ilev-1] exp(-dtau) + B(T[ilyr-1]) ( 1-exp(-dtau))
+   * quasi ldn[ilyr] = ldn[ilyr-1] exp(-dtau) + B(T[ilyr]) (1-exp(-dtau))
    *
    */
-  Ldow[0] = 0;
-  Edow[0] = 0;
+  ldn[0] = 0;
+  edn[0] = 0;
   
   for (mu=dmu; mu <= 1; mu += dmu) {
     for (ilev=1; ilev<nlev; ilev++) {
       
-      Ldow[ilev]= TEmission(dtau/mu, Ldow[ilev-1], T[ilev-1]); 
-      Edow[ilev] += Ldow[ilev]*mu*dmu*2.0*M_PI;
+      ldn[ilev]= TEmission(dtau/mu, ldn[ilev-1], T[ilev-1]); 
+      edn[ilev] += ldn[ilev]*mu*dmu*2.0*M_PI;
     }
   }
 
-  // Net Energy per layer: Enet
+  // output of eup, L, edn
+  // for (ilev=0; ilev < nlev; ilev++) {
+  //  printf (  "--%d-- ilev, eup = %f, Lbelow = %f,edn = %f \t--%d--\n" ,ilev,  Eup[ilev], lup[ilev], edn[ilev], ilev);
+  // }
 
-  for (ilyr=0; ilyr<nlyr; ilyr++) {
-    Enet[ilyr]=Eup[ilyr+1]+Edow[ilyr]-Eup[ilyr]-Edow[ilyr+1];
-  }
-
-  // output of Eup, L, Edow and Enet
-  for (ilev=0; ilev < nlev; ilev++) {
-    printf (  "--%d-- ilev, Eup = %f, Lbelow = %f,Edow = %f \t--%d--\n" ,ilev,  Eup[ilev], Lup[ilev], Edow[ilev], ilev);
-    if(ilev < nlyr)
-      printf ("  %d   ilyr, Enetto = %f                      \t\t\t  %d\n", ilev, Enet[ilev], ilev);
-  }
-
-  //printf("Die, die, die! %d %f\n", nlev+nlyr,L[nlev+nlyr+500]); 
-  return 0;
+  return EXIT_SUCCESS;
 }
