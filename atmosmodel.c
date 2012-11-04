@@ -38,15 +38,16 @@ int main() {                                                     /* Definition o
   double cp=1004;  /* J/kg K */
   double Esol=235;  /* W/m^2 = J*/
   double p0=1000;  /* hPa */
-  double deltaT=0; /* K */
+  double deltaTsurf=0; /* K */
   double deltat=100;  /* s */
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
+  double Tsurf = TMIN;
 
   int timesteps = 0;
   int ilev=0;
   int ilyr=0;
-  int nlyr=100;  /* Number of Layers */
+  int nlyr=10;  /* Number of Layers */
   int nlev=nlyr+1;
   int instabil=FALSE;
   
@@ -59,6 +60,10 @@ int main() {                                                     /* Definition o
   double *plyr=calloc(nlyr,sizeof(double));
   double *z=calloc(nlyr,sizeof(double));
   double *deltaz=calloc(nlyr,sizeof(double));
+  double *eup=calloc(nlev, sizeof(double));
+  double *edn=calloc(nlev, sizeof(double));
+  double *enet=calloc(nlyr, sizeof(double));
+  double *deltaT=calloc(nlyr, sizeof(double));
 
 
   plscolbg (255, 255, 255);   /* background color white */
@@ -85,10 +90,26 @@ int main() {                                                     /* Definition o
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
 
-    H=Esol-boltzmann(T[nlyr-1]);
-    deltaT=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
-    T[nlyr-1]+= deltaT;
+    H=Esol-boltzmann(Tsurf);
+    deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
+    Tsurf += deltaTsurf;
     // printf("%f\n", deltaT);
+
+    //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
+    schwarzschild(1.0, T, nlev, Tsurf, edn, eup);
+
+    /* E-netto */
+    for(ilyr=0; ilyr<nlyr; ilyr++) {
+      enet[ilyr] = eup[ilyr+1] + edn[ilyr] - eup[ilyr] - edn[ilyr+1];
+      //printf("enet%f\n", enet[ilyr]);
+    }
+
+    /* Temperature gain for each layer */
+    for (ilyr=0; ilyr<nlyr; ilyr++)  {
+      deltaT[ilyr]=(enet[ilyr]*g*deltat)/((deltap*100.0)*cp);
+      T[ilyr] +=deltaT[ilyr];
+      //printf("T%f\n", T[ilyr]);
+    }
   
     for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
       plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
@@ -121,8 +142,9 @@ int main() {                                                     /* Definition o
       //printf("%d %f\n", ilyr, theta[ilyr]);
     }
 
-    if(timesteps % (int)(10000000/deltat/nlyr) == 0) {
+    if(timesteps % (int)(1000000/deltat/nlyr) == 0) {
       printf ("timestep %d\n", timesteps);
+      printf(" Tsurf=%f\n", Tsurf);
 
       pladv(1);     /* select subpage 1  */
       plvsta();     /* standard viewport */
@@ -166,7 +188,7 @@ int main() {                                                     /* Definition o
 
 
       for (ilyr=0; ilyr<nlyr; ilyr++) {
-      printf("z[%d]=%f,  plyr[%d]=%f\n", ilyr, z[ilyr], ilyr, plyr[ilyr]);
+        printf("ilyr %d, z=%f,  plyr=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr], T[ilyr]);
       }
 
       sleep(1);
