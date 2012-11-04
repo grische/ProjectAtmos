@@ -144,6 +144,18 @@ int main() {                                                     /* Definition o
 
     if(timesteps % (int)(1000000/deltat/nlyr) == 0) {
       printf ("timestep %d\n", timesteps);
+
+      /* Printing time in readable format
+       * In order to remove days, hours or minutes
+       * just add // in front of the appropriate line
+       */
+      int time = timesteps*deltat;
+      printf("time ");
+      printf("%dd = ", (int)(time / 3600 / 24));
+      printf("%dh = ", (int)(time / 3600 ));
+      printf("%dmin = ", (int)(time / 60 ));
+      printf("%ds\n", time);
+
       printf(" Tsurf=%f\n", Tsurf);
 
       pladv(1);     /* select subpage 1  */
@@ -169,8 +181,6 @@ int main() {                                                     /* Definition o
       for (ilyr=nlyr-1; ilyr>-1; ilyr--) {
 	z[ilyr]=z[ilyr+1]+deltaz[ilyr];
       }
-
-      printf ("time: %d\n", (int)(timesteps*deltat));
 
       pladv(2);     /* select subpage 1  */
       plvsta();     /* standard viewport */
