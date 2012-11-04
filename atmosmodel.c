@@ -10,7 +10,6 @@
 #define R 8.31447     /* J/(mol K) */
 #define M 0.0289644   /* kg / mol */
 #define g 9.8065      /* m/s^2 */
-#define SIGMA 5.67E-8   /* W / (m^2 K^4) */
 #define EPSILON 0.99   /* break condition TMAX*EPS */
 
 #define TMAX 255.0    /* K */
