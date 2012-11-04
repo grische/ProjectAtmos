@@ -38,15 +38,16 @@ int main() {                                                     /* Definition o
   double cp=1004;  /* J/kg K */
   double Esol=235;  /* W/m^2 = J*/
   double p0=1000;  /* hPa */
-  double deltaT=0; /* K */
+  double deltaTsurf=0; /* K */
   double deltat=100;  /* s */
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
+  double Tsurf=0; /* K */
 
   int timesteps = 0;
   int ilev=0;
   int ilyr=0;
-  int nlyr=100;  /* Number of Layers */
+  int nlyr=10;  /* Number of Layers */
   int nlev=nlyr+1;
   int instabil=FALSE;
   
@@ -59,6 +60,10 @@ int main() {                                                     /* Definition o
   double *plyr=calloc(nlyr,sizeof(double));
   double *z=calloc(nlyr,sizeof(double));
   double *deltaz=calloc(nlyr,sizeof(double));
+  double *eup=calloc(nlev, sizeof(double));
+  double *edn=calloc(nlev, sizeof(double));
+  double *enet=calloc(nlyr, sizeof(double));
+  double *deltaT=calloc(nlyr, sizeof(double));
 
 
   plscolbg (255, 255, 255);   /* background color white */
@@ -78,17 +83,41 @@ int main() {                                                     /* Definition o
   
   for(ilyr=0; ilyr<nlyr; ilyr+=1) {                             /* Temperature for all Layers 255K */
     T[ilyr]=TMIN;
-    
+    printf("%f\n", T[ilyr]);
   }
+ 
   
-  while (T[nlyr-1] < TMAX*EPSILON) {                                       /* Loop limited to 400K */
-    // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
-    timesteps++;
+  Tsurf=100;         /* Tsurf */
 
-    H=Esol-boltzmann(T[nlyr-1]);
-    deltaT=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
-    T[nlyr-1]+= deltaT;
-    // printf("%f\n", deltaT);
+  while (Tsurf<400) {        /* Begrenzung */
+
+
+    H=Esol-((5.67E-8)*(pow(Tsurf,4)));
+  deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature of Tsurf */
+  Tsurf += deltaTsurf;
+  printf("deltaTsurf%f\n", deltaTsurf);
+
+  printf("H %f, Tsurf %f\n",H, Tsurf);
+
+  //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup);
+
+  schwarzschild(1.0, T, nlev, Tsurf, edn, eup);
+
+    /* E-netto */
+  for(ilyr=0; ilyr<nlyr; ilyr++) {
+    enet[ilyr] = eup[ilyr+1] + edn[ilyr] - eup[ilyr] - edn[ilyr+1];
+  printf("enet%f\n", enet[ilyr]);
+  }
+
+
+
+  for (ilyr=0; ilyr<nlyr; ilyr++)  {
+    deltaT[ilyr]=(enet[ilyr]*g*deltat)/((deltap*100.0)*cp);        /* Temperature gain for each layer */
+    T[ilyr] +=deltaT[ilyr];
+    printf("T%f\n", T[ilyr]);
+}
+
+  
   
     for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
       plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
@@ -123,13 +152,14 @@ int main() {                                                     /* Definition o
 
     if(timesteps % (int)(10000000/deltat/nlyr) == 0) {
       printf ("timestep %d\n", timesteps);
+    }
 
       pladv(1);     /* select subpage 1  */
       plvsta();     /* standard viewport */
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
 
-      plwind( TMIN, TMAX, p0, 0 );  /* xmin, xmax, ymin, ymax */
+      plwind( 0, TMAX, p0, 0 );  /* xmin, xmax, ymin, ymax */
       plbox( "bcnst", (TMAX-TMIN)/4.0 , 0, "bcnst", 150.0, 0 );
       pllab ("temperature [K]", "p [hPa]", "");  /* axis labels     */
 
@@ -138,13 +168,14 @@ int main() {                                                     /* Definition o
 
       plcol0 (15);                        /* color black */
 
+
       for (ilyr=0;ilyr<nlyr; ilyr++) {
 	deltaz[ilyr]=(Ra*T[ilyr]*deltap)/(plyr[ilyr]*g);  
       }
       
       z[nlyr-1]=0;
 
-      for (ilyr=nlyr-1; ilyr>-1; ilyr--) {
+      for (ilyr=nlyr-2; ilyr>-1; ilyr--) {
 	z[ilyr]=z[ilyr+1]+deltaz[ilyr];
       }
 
@@ -155,8 +186,8 @@ int main() {                                                     /* Definition o
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
 
-      plwind( TMIN, TMAX, 0, 24000 );  /* xmin, xmax, ymin, ymax */
-      plbox( "bcnst", (TMAX-TMIN)/4.0, 0, "bcnst", 4000.0, 0 );
+      plwind( TMIN, TMAX, 0, 25000 );  /* xmin, xmax, ymin, ymax */
+      plbox( "bcnst", (TMAX-TMIN)/4.0, 0, "bcnst", 5000.0, 0 );
       pllab ("temperature [K]", "z [m]", "");  /* axis labels     */
 
       plcol0 (9);                         /* color blue  */
@@ -166,21 +197,21 @@ int main() {                                                     /* Definition o
 
 
       for (ilyr=0; ilyr<nlyr; ilyr++) {
-      printf("z[%d]=%f,  plyr[%d]=%f\n", ilyr, z[ilyr], ilyr, plyr[ilyr]);
+	printf("z[%d]=%f,  plyr[%d]=%f, T=\n", ilyr, z[ilyr], ilyr, plyr[ilyr], T[ilyr]);
       }
 
-      sleep(1);
-    }
+      //sleep(1);
+    
 
   }                                       /* End of Loop */
 
-  printf("\nTime %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
-  for (ilyr=0; ilyr<nlyr; ilyr++) {
-  printf("%d %f\n", ilyr, T[ilyr]);
-  }
+//  printf("\nTime %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
+//for (ilyr=0; ilyr<nlyr; ilyr++) {
+//printf("%d %f\n", ilyr, T[ilyr]);
+//}
 
-  sleep(30);
+sleep(30);
 
 
-  return 0;
+ return 0;
 }
