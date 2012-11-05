@@ -2,13 +2,19 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define SIGMA 5.67E-8   /* W / (m^2 K^4) */
+
+
 double boltzmann (const double T) {
-  double B=(5.67E-8)*pow(T,4)/M_PI;
-  return B;
+  return SIGMA * pow(T, 4);
+}
+
+double boltzmann_overpi (const double T) {
+  return boltzmann(T)/M_PI;
 }
 
 double TEmission (double tau, const double Lbelow, const double Tlyr) {
-  double TEmission = Lbelow * exp(-tau) + boltzmann(Tlyr)*(1.0-exp(-tau));
+  double TEmission = Lbelow * exp(-tau) + boltzmann_overpi(Tlyr)*(1.0-exp(-tau));
   //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
   return TEmission;
 }
@@ -42,7 +48,7 @@ int schwarzschild(const double tau, const double *T, const int nlev, const doubl
    *
    */
   //Calculation of eup from surface
-  lup[nlev-1] = boltzmann(Ts);
+  lup[nlev-1] = boltzmann_overpi(Ts);
   eup[nlev-1] = lup[nlev-1]*M_PI;
 
   for (mu=dmu; mu <= 1; mu += dmu) {
