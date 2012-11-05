@@ -15,16 +15,16 @@ double boltzmann_overpi (const double T) {
   return boltzmann(T)/M_PI;
 }
 
-double Planck (const double T, double lamda) {
+double planck (const double T, double lamda) {
   return c1/((pow(lamda,5))*((exp(c2/(lamda*T))-1)))
 
-double TEmission (double tau, const double Lbelow, const double Tlyr) {
-  double TEmission = Lbelow * exp(-tau) + boltzmann_overpi(Tlyr)*(1.0-exp(-tau));
+    double TEmission (double tau, const double Lbelow, const double Tlyr, double lamda) {
+    double TEmission = Lbelow * exp(-tau) + planck(Tlyr,lamda)*(1.0-exp(-tau));
   //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
   return TEmission;
 }
 
-int schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup) {
+  int schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup, double *tau) {
 
   const double dmu = 0.01;
   const double dtau = tau/(nlev-1);
@@ -53,7 +53,7 @@ int schwarzschild(const double tau, const double *T, const int nlev, const doubl
    *
    */
   //Calculation of eup from surface
-  lup[nlev-1] = boltzmann_overpi(Ts);
+  lup[nlev-1] = planck(Ts,lamda);
   eup[nlev-1] = lup[nlev-1]*M_PI;
 
   for (mu=dmu/2; mu <= 1; mu += dmu) {
