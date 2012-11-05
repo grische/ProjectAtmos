@@ -39,15 +39,16 @@ int main() {                                                     /* Definition o
   double Esol=235;  /* W/m^2 = J*/
   double p0=1000;  /* hPa */
   double deltaTsurf=0; /* K */
-  double deltat=100;  /* s */
+  double deltat=1000;  /* s */
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
   double Tsurf = TMIN;
+  double tau = 5.0
 
   int timesteps = 0;
   int ilev=0;
   int ilyr=0;
-  int nlyr=10;  /* Number of Layers */
+  int nlyr=100;  /* Number of Layers */
   int nlev=nlyr+1;
   int instabil=FALSE;
   
@@ -86,17 +87,17 @@ int main() {                                                     /* Definition o
     
   }
   
-  while (T[nlyr-1] < TMAX*EPSILON) {                                       /* Loop limited to 400K */
+  while (timesteps < 100000) {                                       /* Loop limited to 400K */
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
 
-    H=Esol-boltzmann(Tsurf);
+    H=Esol-boltzmann(Tsurf)+edn[nlyr-1];
     deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
     Tsurf += deltaTsurf;
     // printf("%f\n", deltaT);
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
-    schwarzschild(1.0, T, nlev, Tsurf, edn, eup);
+    schwarzschild(tau, T, nlev, Tsurf, edn, eup);
 
     /* E-netto */
     for(ilyr=0; ilyr<nlyr; ilyr++) {
@@ -163,8 +164,8 @@ int main() {                                                     /* Definition o
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
 
-      plwind( TMIN, TMAX, p0, 0 );  /* xmin, xmax, ymin, ymax */
-      plbox( "bcnst", (TMAX-TMIN)/4.0 , 0, "bcnst", 150.0, 0 );
+      plwind( 0, 400, p0, 0 );  /* xmin, xmax, ymin, ymax */
+      plbox( "bcnst", 100, 0, "bcnst", 150.0, 0 );
       pllab ("temperature [K]", "p [hPa]", "");  /* axis labels     */
 
       plcol0 (9);                         /* color blue  */
@@ -187,8 +188,8 @@ int main() {                                                     /* Definition o
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
 
-      plwind( TMIN, TMAX, 0, 24000 );  /* xmin, xmax, ymin, ymax */
-      plbox( "bcnst", (TMAX-TMIN)/4.0, 0, "bcnst", 4000.0, 0 );
+      plwind( 0, 400, 0, 24000 );  /* xmin, xmax, ymin, ymax */
+      plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
       pllab ("temperature [K]", "z [m]", "");  /* axis labels     */
 
       plcol0 (9);                         /* color blue  */
@@ -198,10 +199,10 @@ int main() {                                                     /* Definition o
 
 
       for (ilyr=0; ilyr<nlyr; ilyr++) {
-        printf("ilyr %d, z=%f,  plyr=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr], T[ilyr]);
+        printf("ilyr %d, z=%f,  plyr=%f,theta=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr],theta[ilyr], T[ilyr]);
       }
 
-      sleep(1);
+      sleep(0);
     }
 
   }                                       /* End of Loop */

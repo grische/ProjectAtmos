@@ -21,7 +21,7 @@ double TEmission (double tau, const double Lbelow, const double Tlyr) {
 
 int schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup) {
 
-  const double dmu = 0.001;
+  const double dmu = 0.01;
   const double dtau = tau/(nlev-1);
 
   double *lup=calloc(nlev, sizeof(double));
@@ -51,7 +51,7 @@ int schwarzschild(const double tau, const double *T, const int nlev, const doubl
   lup[nlev-1] = boltzmann_overpi(Ts);
   eup[nlev-1] = lup[nlev-1]*M_PI;
 
-  for (mu=dmu; mu <= 1; mu += dmu) {
+  for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
       lup[ilev]=TEmission(dtau/mu, lup[ilev+1], T[ilev]);
@@ -69,7 +69,7 @@ int schwarzschild(const double tau, const double *T, const int nlev, const doubl
   ldn[0] = 0;
   edn[0] = 0;
   
-  for (mu=dmu; mu <= 1; mu += dmu) {
+  for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=1; ilev<nlev; ilev++) {
       
       ldn[ilev]= TEmission(dtau/mu, ldn[ilev-1], T[ilev-1]); 
