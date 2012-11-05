@@ -43,7 +43,7 @@ int main() {                                                     /* Definition o
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
   double Tsurf = TMIN;
-  double tau = 5.0
+  double tau = 5.0;
 
   int timesteps = 0;
   int ilev=0;
@@ -72,7 +72,7 @@ int main() {                                                     /* Definition o
   plsdev ("xwin"); /* if not called, the user is asked! */
   plinit ();
   
-  plssub(2,1);
+  plssub(2,2);
 
 
   for(ilev=0; ilev<nlev; ilev++) {                              /* Calculation of the Pressure at the Levels p[ilev] */
@@ -159,6 +159,9 @@ int main() {                                                     /* Definition o
 
       printf(" Tsurf=%f\n", Tsurf);
 
+
+      /* Plot T against p */
+
       pladv(1);     /* select subpage 1  */
       plvsta();     /* standard viewport */
       plclear();    /* clear subpage     */
@@ -183,6 +186,9 @@ int main() {                                                     /* Definition o
 	z[ilyr]=z[ilyr+1]+deltaz[ilyr];
       }
 
+
+      /* Plot T against z */
+
       pladv(2);     /* select subpage 1  */
       plvsta();     /* standard viewport */
       plclear();    /* clear subpage     */
@@ -194,6 +200,23 @@ int main() {                                                     /* Definition o
 
       plcol0 (9);                         /* color blue  */
       plline (nlyr, T, z);  /* plot temperature profile  */
+
+      plcol0 (15);                        /* color black */
+
+
+      /* Plot Heating rate against z */
+
+      pladv(3);     /* select subpage 1  */
+      plvsta();     /* standard viewport */
+      plclear();    /* clear subpage     */
+      plcol0 (15);  /* color black       */
+
+      plwind( 0, 0.2, 0, 24000 );  /* xmin, xmax, ymin, ymax */
+      plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
+      pllab ("Heating Rate [T/timestep]", "z [m]", "");  /* axis labels     */
+
+      plcol0 (9);                         /* color blue  */
+      plline (nlyr, deltaT, z);  /* plot temperature profile  */
 
       plcol0 (15);                        /* color black */
 
