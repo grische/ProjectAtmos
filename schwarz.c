@@ -3,6 +3,8 @@
 #include <math.h>
 
 #define SIGMA 5.67E-8   /* W / (m^2 K^4) */
+#define c1 3.74E-16 /* W / m^2 */
+#define c2 1.44E-2 /* m K */
 
 
 double boltzmann (const double T) {
@@ -12,6 +14,9 @@ double boltzmann (const double T) {
 double boltzmann_overpi (const double T) {
   return boltzmann(T)/M_PI;
 }
+
+double Planck (const double T, double lamda) {
+  return c1/((pow(lamda,5))*((exp(c2/(lamda*T))-1)))
 
 double TEmission (double tau, const double Lbelow, const double Tlyr) {
   double TEmission = Lbelow * exp(-tau) + boltzmann_overpi(Tlyr)*(1.0-exp(-tau));

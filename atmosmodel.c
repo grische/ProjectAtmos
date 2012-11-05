@@ -206,7 +206,7 @@ int main() {                                                     /* Definition o
 
       /* Plot Heating rate against z */
 
-      pladv(3);     /* select subpage 1  */
+      pladv(4);     /* select subpage 1  */
       plvsta();     /* standard viewport */
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
