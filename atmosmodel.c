@@ -13,7 +13,7 @@
 #define EPSILON 0.99   /* break condition TMAX*EPS */
 
 #define TMAX 255.0    /* K */
-#define TMIN 100.0    /* K */
+#define TMIN 288.0    /* K */
 
 static int sortfunc (const void *a, const void *b) {             /* Defining sortfunc */
   
@@ -48,7 +48,7 @@ int main() {                                                     /* Definition o
   int timesteps = 0;
   int ilev=0;
   int ilyr=0;
-  int nlyr=100;  /* Number of Layers */
+  int nlyr=10;  /* Number of Layers */
   int nlev=nlyr+1;
   int instabil=FALSE;
   
@@ -79,30 +79,35 @@ int main() {                                                     /* Definition o
     p[ilev]=p0*ilev/(nlev-1);
     
     //printf("%d %f\n", ilev, p[ilev]);
+
+ for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
+      plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
+      //printf("%d %f\n", ilyr, plyr[ilyr]);
+    }
    
   }
   
-  for(ilyr=0; ilyr<nlyr; ilyr+=1) {                             /* Temperature for all Layers 255K */
-    T[ilyr]=TMIN;
-    
-  }
-  
-  while (timesteps < 100000) {                                       /* Loop limited to 400K */
+  for(ilyr=0; ilyr<nlyr; ilyr++) {                             /* Temperature for all Layers 255K */
+   T[ilyr]=Tsurf*pow((plyr[ilyr]/p0),kappa);
+   }
+ 
+  // for(ilyr=0;ilyr<nlyr; ilyr++){
+  // T[ilyr]=200;
+  // }
+
+ 
+  while (timesteps < 100) {                                       /* Loop limited to 400K */
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
 
-    H=Esol-boltzmann(Tsurf)+edn[nlyr-1];
-    deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
-    Tsurf += deltaTsurf;
-    // printf("%f\n", deltaT);
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
     schwarzschild(tau, T, nlev, Tsurf, edn, eup);
-
+   
     /* E-netto */
     for(ilyr=0; ilyr<nlyr; ilyr++) {
       enet[ilyr] = eup[ilyr+1] + edn[ilyr] - eup[ilyr] - edn[ilyr+1];
-      //printf("enet%f\n", enet[ilyr]);
+     
     }
 
     /* Temperature gain for each layer */
@@ -112,10 +117,11 @@ int main() {                                                     /* Definition o
       //printf("T%f\n", T[ilyr]);
     }
   
-    for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
-      plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
-      //printf("%d %f\n", ilyr, plyr[ilyr]);
-    }
+   
+    H=Esol-boltzmann(Tsurf)+edn[nlyr-1];
+    deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
+    Tsurf += deltaTsurf;
+    // printf("%f\n", deltaT);
   
     
     for (ilyr=0; ilyr<nlyr; ilyr++) {                           /* Conversion from T to theta */
@@ -225,6 +231,10 @@ int main() {                                                     /* Definition o
         printf("ilyr %d, z=%f,  plyr=%f,theta=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr],theta[ilyr], T[ilyr]);
       }
 
+ for (ilev=0; ilev<nlev; ilev++) {
+   printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]);
+    }
+
       sleep(0);
     }
 
@@ -234,6 +244,8 @@ int main() {                                                     /* Definition o
   for (ilyr=0; ilyr<nlyr; ilyr++) {
   printf("%d %f\n", ilyr, T[ilyr]);
   }
+
+  printf("\nTsurf=%f\n", Tsurf);
 
   sleep(30);
 
