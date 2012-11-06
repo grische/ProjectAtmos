@@ -25,10 +25,10 @@ double boltzmann_overpi (const double T) {
   return TEmission;
 }
 
-  int schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup) {
+  int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup) {
 
   const double dmu = 0.01;
-  const double dtau = tau/(nlev-1);
+  //  const double dtau = tau/(nlev-1);
 
   double *lup=calloc(nlev, sizeof(double));
   double *ldn=calloc(nlev, sizeof(double));
@@ -60,7 +60,7 @@ double boltzmann_overpi (const double T) {
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-      lup[ilev]=TEmission(dtau/mu, lup[ilev+1], T[ilev]);
+      lup[ilev]=TEmission(deltatau[ilev]/mu, lup[ilev+1], T[ilev]);
       eup[ilev] += lup[ilev]*mu*dmu*2.0*M_PI;
     }
   }
@@ -78,7 +78,7 @@ double boltzmann_overpi (const double T) {
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=1; ilev<nlev; ilev++) {
       
-      ldn[ilev]= TEmission(dtau/mu, ldn[ilev-1], T[ilev-1]); 
+      ldn[ilev]= TEmission(deltatau[ilev-1]/mu, ldn[ilev-1], T[ilev-1]); 
       edn[ilev] += ldn[ilev]*mu*dmu*2.0*M_PI;
     }
   }

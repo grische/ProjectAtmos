@@ -43,7 +43,7 @@ int main() {                                                     /* Definition o
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
   double Tsurf = TMIN;
-  double tau = 5.0;
+ // double tau = 5.0;
 
   int timesteps = 0;
   int ilev=0;
@@ -65,6 +65,7 @@ int main() {                                                     /* Definition o
   double *edn=calloc(nlev, sizeof(double));
   double *enet=calloc(nlyr, sizeof(double));
   double *deltaT=calloc(nlyr, sizeof(double));
+  double *deltatau=calloc(nlyr,sizeof(double));
 
 
   plscolbg (255, 255, 255);   /* background color white */
@@ -90,10 +91,20 @@ int main() {                                                     /* Definition o
   for(ilyr=0; ilyr<nlyr; ilyr++) {                             /* Temperature for all Layers 255K */
    T[ilyr]=Tsurf*pow((plyr[ilyr]/p0),kappa);
    }
+
+  for (ilyr=0;ilyr<5;ilyr++) {
+   T[ilyr]=229.250;
+}
  
-  // for(ilyr=0;ilyr<nlyr; ilyr++){
-  // T[ilyr]=200;
-  // }
+   for(ilyr=0;ilyr<nlyr; ilyr++){
+   printf ("T=%f\n", T[ilyr]);
+   }
+
+   for (ilyr=0; ilyr<nlyr; ilyr++){
+   deltatau[ilyr]=exp(-(950-plyr[ilyr])/500);
+   printf ("tau=%f\n", deltatau[ilyr]);
+}
+  
 
  
   while (timesteps < 100) {                                       /* Loop limited to 400K */
@@ -102,7 +113,7 @@ int main() {                                                     /* Definition o
 
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
-    schwarzschild(tau, T, nlev, Tsurf, edn, eup);
+    schwarzschild(deltatau, T, nlev, Tsurf, edn, eup);
    
     /* E-netto */
     for(ilyr=0; ilyr<nlyr; ilyr++) {
@@ -118,10 +129,10 @@ int main() {                                                     /* Definition o
     }
   
    
-    H=Esol-boltzmann(Tsurf)+edn[nlyr-1];
-    deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
-    Tsurf += deltaTsurf;
-    // printf("%f\n", deltaT);
+    /* H=Esol-boltzmann(Tsurf)+edn[nlyr-1]; */
+    /* deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /\* Equation for Temperature gain of the bottom Layer *\/ */
+    /* Tsurf += deltaTsurf; */
+    /* // printf("%f\n", deltaT); */
   
     
     for (ilyr=0; ilyr<nlyr; ilyr++) {                           /* Conversion from T to theta */
