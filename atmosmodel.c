@@ -13,7 +13,10 @@
 
 #define TSURF 288.0    /* K */
 
-#define TIME_MAX 3600 * 24 * 1  /* seconds */
+#define TIME_MAX 3600 * 24 * 360  /* seconds */
+
+#define WAVELENGTH_MAX  1.0E-4  /* meters */
+#define WAVELENGTH_STEP 1.0E-6  /* meters */
 
 static int sortfunc (const void *a, const void *b) {             /* Defining sortfunc */
   
@@ -39,7 +42,7 @@ int main() {                                                     /* Definition o
   double Esol=235;  /* W/m^2 = J*/
   double p0=1000;  /* hPa */
   double deltaTsurf=0; /* K */
-  double deltat=1000;  /* s */
+  double deltat=400;  /* s */
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
   double Tsurf = TSURF;
@@ -51,7 +54,8 @@ int main() {                                                     /* Definition o
   int nlyr=10;  /* Number of Layers */
   int nlev=nlyr+1;
   int instabil=FALSE;
-  
+
+  double dlambda;  
   double deltap=p0/nlyr;
   double kappa=Ra/cp;
   
@@ -61,9 +65,13 @@ int main() {                                                     /* Definition o
   double *plyr=calloc(nlyr,sizeof(double));
   double *z=calloc(nlyr,sizeof(double));
   double *deltaz=calloc(nlyr,sizeof(double));
+
   double *eup=calloc(nlev, sizeof(double));
   double *edn=calloc(nlev, sizeof(double));
+  double *euptmp=calloc(nlev, sizeof(double));
+  double *edntmp=calloc(nlev, sizeof(double));
   double *enet=calloc(nlyr, sizeof(double));
+
   double *deltaT=calloc(nlyr, sizeof(double));
   double *deltatau=calloc(nlyr,sizeof(double));
 
@@ -92,8 +100,8 @@ int main() {                                                     /* Definition o
     T[ilyr]=Tsurf*pow((plyr[ilyr]/p0),kappa);
   }
 
-  for (ilyr=0;ilyr<5;ilyr++) {
-    T[ilyr]=229.250;
+  for (ilyr=0;ilyr<nlyr;ilyr++) {
+    T[ilyr]=100;
   }
  
   for(ilyr=0;ilyr<nlyr; ilyr++){
@@ -104,28 +112,38 @@ int main() {                                                     /* Definition o
     deltatau[ilyr]=exp(-(950-plyr[ilyr])/500);
     printf ("tau=%f\n", deltatau[ilyr]);
   }
-  
 
  
   while (timesteps*deltat < TIME_MAX) {                                       /* Loop limited to 400K */
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
-
+  
+    for(ilev=0; ilev<nlev; ilev++) {
+      edn[ilev] = 0;
+      eup[ilev] = 0;
+    }
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
-    schwarzschild(deltatau, T, nlev, Tsurf, edn, eup);
+    for(dlambda=WAVELENGTH_STEP; dlambda < WAVELENGTH_MAX; dlambda += WAVELENGTH_STEP) {
+      schwarzschild(deltatau, T, nlev, Tsurf, edntmp, euptmp, dlambda);
+      //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
+      for(ilev=0; ilev<nlev; ilev++) {
+	edn[ilev] += edntmp[ilev]*WAVELENGTH_STEP;
+	eup[ilev] += euptmp[ilev]*WAVELENGTH_STEP;
+      }
+    }
    
     /* E-netto */
     for(ilyr=0; ilyr<nlyr; ilyr++) {
       enet[ilyr] = eup[ilyr+1] + edn[ilyr] - eup[ilyr] - edn[ilyr+1];
-     
+      //printf("enet[%d] = %e - %e = %e\n", ilyr, eup[ilyr+1]+edn[ilyr], eup[ilyr] + edn[ilyr+1], enet[ilyr]);
     }
 
     /* Temperature gain for each layer */
     for (ilyr=0; ilyr<nlyr; ilyr++)  {
       deltaT[ilyr]=(enet[ilyr]*g*deltat)/((deltap*100.0)*cp);
       T[ilyr] +=deltaT[ilyr];
-      //printf("T%f\n", T[ilyr]);
+      //printf("dT[ilyr] = %f\n", ilyr, deltaT[ilyr]);
     }
   
    
@@ -160,7 +178,7 @@ int main() {                                                     /* Definition o
       //printf("%d %f\n", ilyr, theta[ilyr]);
     }
 
-    if(timesteps % (int)(1000000/deltat/nlyr) == 0) {
+    if(timesteps % (int)(50) == 0) {
       printf ("timestep %d\n", timesteps);
 
       /* Printing time in readable format
@@ -228,7 +246,7 @@ int main() {                                                     /* Definition o
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
 
-      plwind( 0, 0.2, 0, 24000 );  /* xmin, xmax, ymin, ymax */
+      plwind( -0.2, 0.2, 0, 24000 );  /* xmin, xmax, ymin, ymax */
       plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
       pllab ("Heating Rate [T/timestep]", "z [m]", "");  /* axis labels     */
 
