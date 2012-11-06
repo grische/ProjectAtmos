@@ -80,8 +80,8 @@ int main() {                                                     /* Definition o
     p[ilev]=p0*ilev/(nlev-1);
     
     //printf("%d %f\n", ilev, p[ilev]);
-
- for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
+    
+    for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
       plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
       //printf("%d %f\n", ilyr, plyr[ilyr]);
     }
@@ -89,21 +89,21 @@ int main() {                                                     /* Definition o
   }
   
   for(ilyr=0; ilyr<nlyr; ilyr++) {                             /* Temperature for all Layers 255K */
-   T[ilyr]=Tsurf*pow((plyr[ilyr]/p0),kappa);
-   }
+    T[ilyr]=Tsurf*pow((plyr[ilyr]/p0),kappa);
+  }
 
   for (ilyr=0;ilyr<5;ilyr++) {
-   T[ilyr]=229.250;
-}
+    T[ilyr]=229.250;
+  }
  
-   for(ilyr=0;ilyr<nlyr; ilyr++){
-   printf ("T=%f\n", T[ilyr]);
-   }
+  for(ilyr=0;ilyr<nlyr; ilyr++){
+    printf ("T=%f\n", T[ilyr]);
+  }
 
-   for (ilyr=0; ilyr<nlyr; ilyr++){
-   deltatau[ilyr]=exp(-(950-plyr[ilyr])/500);
-   printf ("tau=%f\n", deltatau[ilyr]);
-}
+  for (ilyr=0; ilyr<nlyr; ilyr++){
+    deltatau[ilyr]=exp(-(950-plyr[ilyr])/500);
+    printf ("tau=%f\n", deltatau[ilyr]);
+  }
   
 
  
@@ -242,18 +242,18 @@ int main() {                                                     /* Definition o
         printf("ilyr %d, z=%f,  plyr=%f,theta=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr],theta[ilyr], T[ilyr]);
       }
 
- for (ilev=0; ilev<nlev; ilev++) {
-   printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]);
-    }
-
+      for (ilev=0; ilev<nlev; ilev++) {
+	printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]);
+      }
+      
       sleep(0);
     }
-
+    
   }                                       /* End of Loop */
 
   printf("\nTime %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
   for (ilyr=0; ilyr<nlyr; ilyr++) {
-  printf("%d %f\n", ilyr, T[ilyr]);
+    printf("%d %f\n", ilyr, T[ilyr]);
   }
 
   printf("\nTsurf=%f\n", Tsurf);

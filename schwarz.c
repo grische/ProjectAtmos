@@ -19,14 +19,14 @@ double planck (const double T, const double lamda) {
   return c1/(pow(lamda,5)*(exp(c2/(lamda*T))-1.0));
 }
 
-    double TEmission (double tau, const double Lbelow, const double Tlyr) {
+double TEmission (double tau, const double Lbelow, const double Tlyr) {
     double TEmission = Lbelow * exp(-tau) + boltzmann_overpi(Tlyr)*(1.0-exp(-tau));
-  //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
-  return TEmission;
+    //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
+    return TEmission;
 }
 
-  int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup) {
-
+int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup) {
+  
   const double dmu = 0.01;
   //  const double dtau = tau/(nlev-1);
 
