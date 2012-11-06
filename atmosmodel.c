@@ -10,10 +10,10 @@
 #define R 8.31447     /* J/(mol K) */
 #define M 0.0289644   /* kg / mol */
 #define g 9.8065      /* m/s^2 */
-#define EPSILON 0.99   /* break condition TMAX*EPS */
 
-#define TMAX 255.0    /* K */
-#define TMIN 288.0    /* K */
+#define TSURF 288.0    /* K */
+
+#define TIME_MAX 3600 * 24 * 1  /* seconds */
 
 static int sortfunc (const void *a, const void *b) {             /* Defining sortfunc */
   
@@ -42,7 +42,7 @@ int main() {                                                     /* Definition o
   double deltat=1000;  /* s */
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
-  double Tsurf = TMIN;
+  double Tsurf = TSURF;
  // double tau = 5.0;
 
   int timesteps = 0;
@@ -107,7 +107,7 @@ int main() {                                                     /* Definition o
   
 
  
-  while (timesteps < 100) {                                       /* Loop limited to 400K */
+  while (timesteps*deltat < TIME_MAX) {                                       /* Loop limited to 400K */
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
 
@@ -129,10 +129,10 @@ int main() {                                                     /* Definition o
     }
   
    
-    /* H=Esol-boltzmann(Tsurf)+edn[nlyr-1]; */
-    /* deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /\* Equation for Temperature gain of the bottom Layer *\/ */
-    /* Tsurf += deltaTsurf; */
-    /* // printf("%f\n", deltaT); */
+    H=Esol-boltzmann(Tsurf)+edn[nlyr-1];
+    deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
+    Tsurf += deltaTsurf; 
+    // printf("%f\n", deltaT); */
   
     
     for (ilyr=0; ilyr<nlyr; ilyr++) {                           /* Conversion from T to theta */
@@ -245,8 +245,6 @@ int main() {                                                     /* Definition o
       for (ilev=0; ilev<nlev; ilev++) {
 	printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]);
       }
-      
-      sleep(0);
     }
     
   }                                       /* End of Loop */
