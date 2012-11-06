@@ -15,9 +15,9 @@ double boltzmann_overpi (const double T) {
   return boltzmann(T)/M_PI;
 }
 
-/* double planck (const double T, double lamda) {
-  return c1/((pow(lamda,5))*((exp(c2/(lamda*T))-1)))
-  }*/
+double planck (const double T, const double lamda) {
+  return c1/(pow(lamda,5)*(exp(c2/(lamda*T))-1.0));
+}
 
     double TEmission (double tau, const double Lbelow, const double Tlyr) {
     double TEmission = Lbelow * exp(-tau) + boltzmann_overpi(Tlyr)*(1.0-exp(-tau));
