@@ -58,7 +58,6 @@ int main() {                                                     /* Definition o
   int iwvl=0;
   int nwvl=100;
 
-  double dlambda=1.0E-6;  
   double deltap=p0/nlyr;
   double kappa=Ra/cp;
   
@@ -76,8 +75,12 @@ int main() {                                                     /* Definition o
   double *enet=calloc(nlyr, sizeof(double));
 
   double *deltaT=calloc(nlyr, sizeof(double));
-  double *deltatau=calloc(nwvl,sizeof(double));
   double *lambda=calloc(nwvl,sizeof(double));
+  double** deltatau=calloc(nwvl,sizeof(double*));
+
+  for(ilyr=0; iwvl<nwvl; iwvl++) {
+    deltatau[iwvl] = calloc(nlyr,sizeof(double));
+  }
 
 
   plscolbg (255, 255, 255);   /* background color white */
@@ -122,26 +125,26 @@ int main() {                                                     /* Definition o
   lambda[0]=0;
 
   for (iwvl=0; iwvl<nwvl; iwvl++) {
-    lambda[iwvl]= iwvl*dlambda;
+    lambda[iwvl]= (iwvl+1)*WAVELENGTH_STEP;
     // printf("iwvl= %d, lambda= %g\n", iwvl, lambda[iwvl]);
   }
 
   for (ilyr=0; ilyr<nlyr; ilyr++) {
 
   for (iwvl=0; iwvl<8; iwvl++) {
-    deltatau[ilyr][iwvl]=10.0/8.0;
+    deltatau[iwvl][ilyr]=10.0/8.0;
   }
 
   for (iwvl=8; iwvl<13; iwvl++) {
-    deltatau[ilyr][iwvl]=0.5/(13-8);
+    deltatau[iwvl][ilyr]=0.5/(13-8);
   }
 
   for (iwvl=13; iwvl<nwvl; iwvl++) {
-    deltatau[ilyr][iwvl]=5.0/(nwvl-13);
+    deltatau[iwvl][ilyr]=5.0/(nwvl-13);
   }
 
   for (iwvl=0; iwvl<nwvl; iwvl++) {
-    printf("iwvl= %d, deltatau= %g, lambda= %g\n", iwvl, deltatau[iwvl], lambda[iwvl]);
+    printf("ilyr=%d, iwvl= %d, deltatau= %e, lambda= %g\n", ilyr, iwvl, deltatau[iwvl][ilyr], lambda[iwvl]);
   }
   }
       while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
@@ -155,7 +158,7 @@ int main() {                                                     /* Definition o
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
     for(iwvl=0; iwvl<nwvl; iwvl++) {
-      schwarzschild(deltatau, T, nlev, Tsurf, edntmp, euptmp, dlambda);
+      schwarzschild(deltatau[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda[iwvl]);
       //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
       for(ilev=0; ilev<nlev; ilev++) {
 	edn[ilev] += edntmp[ilev]*WAVELENGTH_STEP;
