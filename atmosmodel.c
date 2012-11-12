@@ -117,11 +117,12 @@ int main() {                                                     /* Definition o
   /*   printf ("tau=%f\n", deltatau[ilyr]); */
   /* } */
 
+  
+  lambda[0]=0;
 
-  lambda[0]=dlambda;
-
-  for (iwvl=1; iwvl<nwvl; iwvl++) {
-    lambda[iwvl]+= dlambda;
+  for (iwvl=0; iwvl<nwvl; iwvl++) {
+    lambda[iwvl]= iwvl*dlambda;
+    printf("iwvl= %d, lambda= %g\n", iwvl, lambda[iwvl]);
   }
 
   for (iwvl=0; iwvl<8; iwvl++) {
@@ -137,7 +138,7 @@ int main() {                                                     /* Definition o
   }
 
   for (iwvl=0; iwvl<nwvl; iwvl++) {
-    printf("iwvl= %f, deltatau= %f, lambda= %f\n", iwvl, deltatau[iwvl], lambda[iwvl]);
+    printf("iwvl= %d, deltatau= %g, lambda= %g\n", iwvl, deltatau[iwvl], lambda[iwvl]);
   }
  
       while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
