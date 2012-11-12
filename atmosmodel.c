@@ -42,7 +42,7 @@ int main() {                                                     /* Definition o
   double Esol=235;  /* W/m^2 = J*/
   double p0=1000;  /* hPa */
   double deltaTsurf=0; /* K */
-  double deltat=400;  /* s */
+  double deltat=1000;  /* s */
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
   double Tsurf = TSURF;
@@ -55,7 +55,10 @@ int main() {                                                     /* Definition o
   int nlev=nlyr+1;
   int instabil=FALSE;
 
-  double dlambda;  
+  int iwvl=0;
+  int nwvl=100;
+
+  double dlambda=1.0E-6;  
   double deltap=p0/nlyr;
   double kappa=Ra/cp;
   
@@ -74,6 +77,7 @@ int main() {                                                     /* Definition o
 
   double *deltaT=calloc(nlyr, sizeof(double));
   double *deltatau=calloc(nlyr,sizeof(double));
+  double *lambda=calloc(nwvl,sizeof(double));
 
 
   plscolbg (255, 255, 255);   /* background color white */
@@ -86,7 +90,7 @@ int main() {                                                     /* Definition o
 
   for(ilev=0; ilev<nlev; ilev++) {                              /* Calculation of the Pressure at the Levels p[ilev] */
     p[ilev]=p0*ilev/(nlev-1);
-    
+  }
     //printf("%d %f\n", ilev, p[ilev]);
     
     for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
@@ -94,37 +98,59 @@ int main() {                                                     /* Definition o
       //printf("%d %f\n", ilyr, plyr[ilyr]);
     }
    
-  }
+  
   
   for(ilyr=0; ilyr<nlyr; ilyr++) {                             /* Temperature for all Layers 255K */
     T[ilyr]=Tsurf*pow((plyr[ilyr]/p0),kappa);
   }
 
   for (ilyr=0;ilyr<nlyr;ilyr++) {
-    T[ilyr]=100;
+    T[ilyr]=0;
   }
  
   for(ilyr=0;ilyr<nlyr; ilyr++){
     printf ("T=%f\n", T[ilyr]);
   }
 
-  for (ilyr=0; ilyr<nlyr; ilyr++){
-    deltatau[ilyr]=exp(-(950-plyr[ilyr])/500);
-    printf ("tau=%f\n", deltatau[ilyr]);
+  /* for (ilyr=0; ilyr<nlyr; ilyr++){ */
+  /*   deltatau[ilyr]=0.1; */
+  /*   printf ("tau=%f\n", deltatau[ilyr]); */
+  /* } */
+
+
+  lambda[0]=dlambda;
+
+  for (iwvl=1; iwvl<nwvl; iwvl++) {
+    lambda[iwvl]+= dlambda;
   }
 
+  for (iwvl=0; iwvl<8; iwvl++) {
+    deltatau[iwvl]=10.0/8.0;
+  }
+
+  for (iwvl=8; iwvl<13; iwvl++) {
+    deltatau[iwvl]=0.5/(13-8);
+  }
+
+  for (iwvl=13; iwvl<nwvl; iwvl++) {
+    deltatau[iwvl]=5.0/(nwvl-13);
+  }
+
+  for (iwvl=0; iwvl<nwvl; iwvl++) {
+    printf("iwvl= %f, deltatau= %f, lambda= %f\n", iwvl, deltatau[iwvl], lambda[iwvl]);
+  }
  
-  while (timesteps*deltat < TIME_MAX) {                                       /* Loop limited to 400K */
-    // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
-    timesteps++;
+      while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
+	// printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
+	timesteps++;
   
-    for(ilev=0; ilev<nlev; ilev++) {
-      edn[ilev] = 0;
-      eup[ilev] = 0;
-    }
+	for(ilev=0; ilev<nlev; ilev++) {
+	  edn[ilev] = 0;
+	  eup[ilev] = 0;
+	}
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
-    for(dlambda=WAVELENGTH_STEP; dlambda < WAVELENGTH_MAX; dlambda += WAVELENGTH_STEP) {
+    for(iwvl=0; iwvl<nwvl; iwvl++) {
       schwarzschild(deltatau, T, nlev, Tsurf, edntmp, euptmp, dlambda);
       //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
       for(ilev=0; ilev<nlev; ilev++) {
@@ -149,7 +175,7 @@ int main() {                                                     /* Definition o
    
     H=Esol-boltzmann(Tsurf)+edn[nlyr-1];
     deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
-    Tsurf += deltaTsurf; 
+    Tsurf += deltaTsurf;
     // printf("%f\n", deltaT); */
   
     
@@ -206,7 +232,7 @@ int main() {                                                     /* Definition o
       plbox( "bcnst", 100, 0, "bcnst", 150.0, 0 );
       pllab ("temperature [K]", "p [hPa]", "");  /* axis labels     */
 
-      plcol0 (9);                         /* color blue  */
+      plcol0 (14);                         /* color blue  */
       plline (nlyr, T, plyr);  /* plot temperature profile  */
 
       plcol0 (15);                        /* color black */
@@ -224,7 +250,7 @@ int main() {                                                     /* Definition o
 
       /* Plot T against z */
 
-      pladv(2);     /* select subpage 1  */
+      pladv(3);     /* select subpage 1  */
       plvsta();     /* standard viewport */
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
@@ -233,8 +259,24 @@ int main() {                                                     /* Definition o
       plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
       pllab ("temperature [K]", "z [m]", "");  /* axis labels     */
 
-      plcol0 (9);                         /* color blue  */
+      plcol0 (14);                         /* color blue  */
       plline (nlyr, T, z);  /* plot temperature profile  */
+
+      plcol0 (15);                        /* color black */
+
+      /* Plot Heating rate against p */
+
+      pladv(2);     /* select subpage 1  */
+      plvsta();     /* standard viewport */
+      plclear();    /* clear subpage     */
+      plcol0 (15);  /* color black       */
+
+      plwind( -0.2, 0.2, p0, 0 );  /* xmin, xmax, ymin, ymax */
+      plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
+      pllab ("Heating Rate [T/timestep]", "p [hPa]", "");  /* axis labels     */
+
+      plcol0 (12);                         /* color blue  */
+      plline (nlyr, deltaT, plyr);  /* plot temperature profile  */
 
       plcol0 (15);                        /* color black */
 
@@ -250,7 +292,7 @@ int main() {                                                     /* Definition o
       plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
       pllab ("Heating Rate [T/timestep]", "z [m]", "");  /* axis labels     */
 
-      plcol0 (9);                         /* color blue  */
+      plcol0 (12);                         /* color blue  */
       plline (nlyr, deltaT, z);  /* plot temperature profile  */
 
       plcol0 (15);                        /* color black */
@@ -278,4 +320,4 @@ int main() {                                                     /* Definition o
 
 
   return 0;
-}
+    }
