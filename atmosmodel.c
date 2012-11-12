@@ -46,12 +46,12 @@ int main() {                                                     /* Definition o
   double Ra=287; /* J/kg K */
   double H=0; /* [Esol] */
   double Tsurf = TSURF;
- // double tau = 5.0;
+  // double tau = 5.0;
 
   int timesteps = 0;
   int ilev=0;
   int ilyr=0;
-  int nlyr=10;  /* Number of Layers */
+  int nlyr=50;  /* Number of Layers */
   int nlev=nlyr+1;
   int instabil=FALSE;
 
@@ -94,12 +94,12 @@ int main() {                                                     /* Definition o
   for(ilev=0; ilev<nlev; ilev++) {                              /* Calculation of the Pressure at the Levels p[ilev] */
     p[ilev]=p0*ilev/(nlev-1);
   }
-    //printf("%d %f\n", ilev, p[ilev]);
+  //printf("%d %f\n", ilev, p[ilev]);
     
-    for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
-      plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
-      //printf("%d %f\n", ilyr, plyr[ilyr]);
-    }
+  for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
+    plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
+    //printf("%d %f\n", ilyr, plyr[ilyr]);
+  }
    
   
   
@@ -108,7 +108,7 @@ int main() {                                                     /* Definition o
   }
 
   for (ilyr=0;ilyr<nlyr;ilyr++) {
-    T[ilyr]=0;
+    T[ilyr]=100;
   }
  
   for(ilyr=0;ilyr<nlyr; ilyr++){
@@ -131,30 +131,30 @@ int main() {                                                     /* Definition o
 
   for (ilyr=0; ilyr<nlyr; ilyr++) {
 
-  for (iwvl=0; iwvl<8; iwvl++) {
-    deltatau[iwvl][ilyr]=10.0/8.0;
-  }
+    for (iwvl=0; iwvl<8; iwvl++) {
+      deltatau[iwvl][ilyr]=10.0/8.0;
+    }
 
-  for (iwvl=8; iwvl<13; iwvl++) {
-    deltatau[iwvl][ilyr]=0.5/(13-8);
-  }
+    for (iwvl=8; iwvl<13; iwvl++) {
+      deltatau[iwvl][ilyr]=0.5/(13-8);
+    }
 
-  for (iwvl=13; iwvl<nwvl; iwvl++) {
-    deltatau[iwvl][ilyr]=5.0/(nwvl-13);
-  }
+    for (iwvl=13; iwvl<nwvl; iwvl++) {
+      deltatau[iwvl][ilyr]=5.0/(nwvl-13);
+    }
 
-  for (iwvl=0; iwvl<nwvl; iwvl++) {
-    printf("ilyr=%d, iwvl= %d, deltatau= %e, lambda= %g\n", ilyr, iwvl, deltatau[iwvl][ilyr], lambda[iwvl]);
+    // for (iwvl=0; iwvl<nwvl; iwvl++) {
+    //   printf("ilyr=%d, iwvl= %d, deltatau= %e, lambda= %g\n", ilyr, iwvl, deltatau[iwvl][ilyr], lambda[iwvl]);
+    // }
   }
-  }
-      while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
-	// printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
-	timesteps++;
+  while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
+    // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
+    timesteps++;
   
-	for(ilev=0; ilev<nlev; ilev++) {
-	  edn[ilev] = 0;
-	  eup[ilev] = 0;
-	}
+    for(ilev=0; ilev<nlev; ilev++) {
+      edn[ilev] = 0;
+      eup[ilev] = 0;
+    }
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
     for(iwvl=0; iwvl<nwvl; iwvl++) {
@@ -327,4 +327,4 @@ int main() {                                                     /* Definition o
 
 
   return 0;
-    }
+}
