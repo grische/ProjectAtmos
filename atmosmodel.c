@@ -76,7 +76,7 @@ int main() {                                                     /* Definition o
   double *enet=calloc(nlyr, sizeof(double));
 
   double *deltaT=calloc(nlyr, sizeof(double));
-  double *deltatau=calloc(nlyr,sizeof(double));
+  double *deltatau=calloc(nwvl,sizeof(double));
   double *lambda=calloc(nwvl,sizeof(double));
 
 
@@ -122,7 +122,7 @@ int main() {                                                     /* Definition o
 
   for (iwvl=0; iwvl<nwvl; iwvl++) {
     lambda[iwvl]= iwvl*dlambda;
-    printf("iwvl= %d, lambda= %g\n", iwvl, lambda[iwvl]);
+    // printf("iwvl= %d, lambda= %g\n", iwvl, lambda[iwvl]);
   }
 
   for (iwvl=0; iwvl<8; iwvl++) {
