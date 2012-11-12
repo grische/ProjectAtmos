@@ -117,7 +117,8 @@ int main() {                                                     /* Definition o
   /*   printf ("tau=%f\n", deltatau[ilyr]); */
   /* } */
 
-  
+ 
+
   lambda[0]=0;
 
   for (iwvl=0; iwvl<nwvl; iwvl++) {
@@ -125,22 +126,24 @@ int main() {                                                     /* Definition o
     // printf("iwvl= %d, lambda= %g\n", iwvl, lambda[iwvl]);
   }
 
+  for (ilyr=0; ilyr<nlyr; ilyr++) {
+
   for (iwvl=0; iwvl<8; iwvl++) {
-    deltatau[iwvl]=10.0/8.0;
+    deltatau[ilyr][iwvl]=10.0/8.0;
   }
 
   for (iwvl=8; iwvl<13; iwvl++) {
-    deltatau[iwvl]=0.5/(13-8);
+    deltatau[ilyr][iwvl]=0.5/(13-8);
   }
 
   for (iwvl=13; iwvl<nwvl; iwvl++) {
-    deltatau[iwvl]=5.0/(nwvl-13);
+    deltatau[ilyr][iwvl]=5.0/(nwvl-13);
   }
 
   for (iwvl=0; iwvl<nwvl; iwvl++) {
     printf("iwvl= %d, deltatau= %g, lambda= %g\n", iwvl, deltatau[iwvl], lambda[iwvl]);
   }
- 
+  }
       while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
 	// printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
 	timesteps++;
