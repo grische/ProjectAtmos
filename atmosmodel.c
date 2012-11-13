@@ -56,7 +56,7 @@ int main() {                                                     /* Definition o
   int instabil=FALSE;
 
   int iwvl=0;
-  int nwvl=100;
+  int nwvl=WAVELENGTH_MAX/WAVELENGTH_STEP;
 
   double deltap=p0/nlyr;
   double kappa=Ra/cp;
@@ -74,6 +74,7 @@ int main() {                                                     /* Definition o
   double *edntmp=calloc(nlev, sizeof(double));
   double *enet=calloc(nlyr, sizeof(double));
 
+  double *deltaTday=calloc(nlyr, sizeof(double));
   double *deltaT=calloc(nlyr, sizeof(double));
   double *lambda=calloc(nwvl,sizeof(double));
   double** deltatau=calloc(nwvl,sizeof(double*));
@@ -227,7 +228,6 @@ int main() {                                                     /* Definition o
 
       printf(" Tsurf=%f\n", Tsurf);
 
-
       /* Plot T against p */
 
       pladv(1);     /* select subpage 1  */
@@ -271,6 +271,10 @@ int main() {                                                     /* Definition o
 
       plcol0 (15);                        /* color black */
 
+      for (ilyr=0; ilyr<nlyr; ilyr++) {
+	deltaTday[ilyr]=deltaT[ilyr]*86.4/2;
+      }
+
       /* Plot Heating rate against p */
 
       pladv(2);     /* select subpage 1  */
@@ -278,9 +282,9 @@ int main() {                                                     /* Definition o
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
 
-      plwind( -0.2, 0.2, p0, 0 );  /* xmin, xmax, ymin, ymax */
-      plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
-      pllab ("Heating Rate [T/timestep]", "p [hPa]", "");  /* axis labels     */
+      plwind( -20, 20, p0, 0 );  /* xmin, xmax, ymin, ymax */
+      plbox( "bcnst", 2, 0, "bcnst", 4000.0, 0 );
+      pllab ("Heating Rate [T/day]", "p [hPa]", "");  /* axis labels     */
 
       plcol0 (12);                         /* color blue  */
       plline (nlyr, deltaT, plyr);  /* plot temperature profile  */
@@ -295,14 +299,35 @@ int main() {                                                     /* Definition o
       plclear();    /* clear subpage     */
       plcol0 (15);  /* color black       */
 
-      plwind( -0.2, 0.2, 0, 24000 );  /* xmin, xmax, ymin, ymax */
-      plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
-      pllab ("Heating Rate [T/timestep]", "z [m]", "");  /* axis labels     */
+
+      plwind( -20, 20, 0, 24000 );  /* xmin, xmax, ymin, ymax */
+      plbox( "bcnst", 2, 0, "bcnst", 4000.0, 0 );
+      pllab ("Heating Rate [T/day]", "z [m]", "");  /* axis labels     */
 
       plcol0 (12);                         /* color blue  */
-      plline (nlyr, deltaT, z);  /* plot temperature profile  */
+      plline (nlyr, deltaTday, z);  /* plot temperature profile  */
 
       plcol0 (15);                        /* color black */
+
+
+      /* Tsurftime[timesteps]=T[nlyr-1]; */
+      /* day[timesteps]=timesteps/86.4; */
+
+      /* /\* Plot T against timestep *\/ */
+
+      /* pladv(3);     /\* select subpage 1  *\/ */
+      /* plvsta();     /\* standard viewport *\/ */
+      /* plclear();    /\* clear subpage     *\/ */
+      /* plcol0 (15);  /\* color black       *\/ */
+
+      /* plwind( 0, 315360, 0, 400 );  /\* xmin, xmax, ymin, ymax *\/ */
+      /* plbox( "bcnst", 100000000000, 0, "bcnst", 4000.0, 0 ); */
+      /* pllab ("Heating Rate [T/day]", "z [m]", "");  /\* axis labels     *\/ */
+
+      /* plcol0 (12);                         /\* color blue  *\/ */
+      /* plline (timesteps, day, Tsurftime);  /\* plot temperature profile  *\/ */
+
+      /* plcol0 (15);                        /\* color black *\/ */
 
 
       for (ilyr=0; ilyr<nlyr; ilyr++) {
