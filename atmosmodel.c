@@ -167,7 +167,9 @@ int main() {                                                     /* Definition o
   double *deltaTday=calloc(nlyr, sizeof(double));
   double *deltaT=calloc(nlyr, sizeof(double));
   double *lambda=calloc(nwvl,sizeof(double));
+  double *lambda_co2;
   double** deltatau=calloc(nwvl,sizeof(double*));
+  double** deltatau_co2;
 
   for(ilyr=0; iwvl<nwvl; iwvl++) {
     deltatau[iwvl] = calloc(nlyr,sizeof(double));
@@ -175,45 +177,33 @@ int main() {                                                     /* Definition o
 
   /* initial values from file */
   int co2_lines;
-  double co2_max;
-  double co2_min;
-  double co2_step;
   {
     /* the variables initialized inside brackets are only valid until the bracket closes */
-    int max_columns=0, min_columns=0;
-    double **data=NULL;
+    double *wvn;
     int status=0;
+    int co2_nlyr;
 
     /* read file */
-    if ( (status = ASCII_file2double ("co2.dtau", &co2_lines, &max_columns, &min_columns, &data)) != 0) {
+    if ( (status = ASCII_file2xy2D ("co2.dtau", &co2_lines, &co2_nlyr, &wvn, &deltatau_co2)) != 0 ) {
       printf("Error %d reading file, quitting!\n", status);
       return EXIT_FAILURE;
     }
     else {
-      if ( max_columns != min_columns ) {
-        printf("Error, file is corrupted. max_cols = %d, min_cols = %d\n", max_columns, min_columns);
+      if ( co2_nlyr != nlyr) {
+        printf("Error, file has different amount of columns (%d) than nylr (%d).\n", co2_nlyr, nlyr);
         return EXIT_FAILURE;
       }
-      else if ( max_columns != nlyr + 1) {
-        printf("Error, file has different amount of columns (%d) than nylr (%d).\n", max_columns, nlyr);
-        return EXIT_FAILURE;
-      }
-      printf("co2.dtau: found %d lines, %d max_cols, %d min_cols  in file\n", co2_lines, max_columns, min_columns);
+      printf("co2.dtau: found %d lines in file\n", co2_lines);
     }
 
-    /* wavelengths are saved in data[0][0], data[1][0], ..., data[co2_lines][0] */
-    co2_max = 1.0/(100.0*data[co2_lines-1][0]);
-    co2_min = 1.0/(100.0*data[0][0]);
-    co2_step = 1.0/(data[0][0]*100.0)  - 1.0/(data[1][0] * 100.0);
+    lambda_co2 = calloc(co2_lines, sizeof(double));
+    for(iwvl=0; iwvl<co2_lines; iwvl++) {
+      lambda_co2[co2_lines-iwvl-1] = 1.0/(100.0*wvn[iwvl]);
+    }
 
-    /*
-    *first   = ASCII_column (data, *n, 0);
-    *second  = ASCII_column (data, *n, 1);
-    *third   = ASCII_column (data, *n, 2);
-    */
-    ASCII_free_double (data, co2_lines);
+    free(wvn);
   }
-  printf("CO2 Profile: max=%e, step=%e, min=%e\n", co2_max, co2_step, co2_min);
+  printf("CO2 Profile: max=%e, min=%e\n", lambda_co2[0], lambda_co2[co2_lines-1]);
 
 
   plscolbg (255, 255, 255);   /* background color white */
