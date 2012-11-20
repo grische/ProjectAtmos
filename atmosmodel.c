@@ -274,7 +274,8 @@ int main() {                                                     /* Definition o
     for(ilev=0; ilev<nlev; ilev++) {
       edn[ilev] = 0;
       eup[ilev] = 0;
-      enet[ilev]=0;
+      if(ilev < nlyr)
+        enet[ilev]=0;
     }
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
@@ -354,8 +355,7 @@ int main() {                                                     /* Definition o
       }
       
       z[nlyr-1]=0;
-
-      for (ilyr=nlyr-1; ilyr>-1; ilyr--) {
+      for (ilyr=nlyr-2; ilyr >= 0; ilyr--) {
 	z[ilyr]=z[ilyr+1]+deltaz[ilyr];
       }
 
