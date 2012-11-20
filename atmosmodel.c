@@ -140,7 +140,7 @@ int main() {                                                     /* Definition o
   int timesteps = 0;
   int ilev=0;
   int ilyr=0;
-  int nlyr=50;  /* Number of Layers */
+  int nlyr=20;  /* Number of Layers */
   int nlev=nlyr+1;
   int instabil=FALSE;
 
