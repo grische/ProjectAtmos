@@ -29,7 +29,7 @@ double TEmission (double tau, const double Lbelow, const double Tlyr, const doub
 
 int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambda) {
   
-  const double dmu = 0.05;
+  const double dmu = 0.1;
   //  const double dtau = tau/(nlev-1);
 
   double *lup=calloc(nlev, sizeof(double));

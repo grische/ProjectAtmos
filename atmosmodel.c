@@ -11,7 +11,7 @@
 #define M 0.0289644   /* kg / mol */
 #define g 9.8065      /* m/s^2 */
 
-#define TSURF 288.0    /* K */
+#define TSURF 100.0    /* K */
 #define PSURF 1000     /* hPa */
 
 #define TIME_MAX 3600 * 24 * 360  /* seconds */
@@ -222,15 +222,15 @@ int main() {                                                     /* Definition o
   for (ilyr=0; ilyr<nlyr; ilyr++) {
 
     for (iwvl=0; iwvl<8; iwvl++) {
-      deltatau[iwvl][ilyr]=10.0/8.0;
+      deltatau[iwvl][ilyr]=10.0/nlyr;
     }
 
     for (iwvl=8; iwvl<13; iwvl++) {
-      deltatau[iwvl][ilyr]=0.5/(13-8);
+      deltatau[iwvl][ilyr]=0.5/nlyr;
     }
 
     for (iwvl=13; iwvl<nwvl; iwvl++) {
-      deltatau[iwvl][ilyr]=5.0/(nwvl-13);
+      deltatau[iwvl][ilyr]=5.0/nlyr;
     }
 
     // for (iwvl=0; iwvl<nwvl; iwvl++) {
@@ -244,6 +244,7 @@ int main() {                                                     /* Definition o
     for(ilev=0; ilev<nlev; ilev++) {
       edn[ilev] = 0;
       eup[ilev] = 0;
+      enet[ilev]=0;
     }
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
@@ -269,11 +270,11 @@ int main() {                                                     /* Definition o
       //printf("dT[ilyr] = %f\n", ilyr, deltaT[ilyr]);
     }
   
-   
-    H=Esol-boltzmann(Tsurf)+edn[nlyr-1];
-    deltaTsurf=(H*g*deltat)/((deltap*100.0)*cp);                    /* Equation for Temperature gain of the bottom Layer */
+    
+    /* Surface Temperature Gain */
+    deltaTsurf=((Esol+edn[nlev-1]-eup[nlev-1])*g*deltat)/((deltap*100.0)*cp);
     Tsurf += deltaTsurf;
-    // printf("%f\n", deltaT); */
+
   
     
     for (ilyr=0; ilyr<nlyr; ilyr++) {                           /* Conversion from T to theta */
@@ -333,13 +334,13 @@ int main() {                                                     /* Definition o
 
       plotall(nlyr, T, plyr, z, deltaTday);
 
-      for (ilyr=0; ilyr<nlyr; ilyr++) {
-        printf("ilyr %d, z=%f,  plyr=%f,theta=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr],theta[ilyr], T[ilyr]);
-      }
+      /* for (ilyr=0; ilyr<nlyr; ilyr++) { */
+      /*   printf("ilyr %d, z=%f,  plyr=%f,theta=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr],theta[ilyr], T[ilyr]); */
+      /* } */
 
-      for (ilev=0; ilev<nlev; ilev++) {
-	printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]);
-      }
+      /* for (ilev=0; ilev<nlev; ilev++) { */
+      /* 	printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]); */
+      /* } */
     }
     
   }                                       /* End of Loop */
