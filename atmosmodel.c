@@ -171,7 +171,7 @@ int main() {                                                     /* Definition o
   double** deltatau_co2;
 
   /* initial values from file */
-  int co2_lines;
+  int co2_nwvl;
   {
     /* the variables initialized inside brackets are only valid until the bracket closes */
     double *wvn;
@@ -179,7 +179,7 @@ int main() {                                                     /* Definition o
     int co2_nlyr;
 
     /* read file */
-    if ( (status = ASCII_file2xy2D ("co2.dtau", &co2_lines, &co2_nlyr, &wvn, &deltatau_co2)) != 0 ) {
+    if ( (status = ASCII_file2xy2D ("co2.dtau", &co2_nwvl, &co2_nlyr, &wvn, &deltatau_co2)) != 0 ) {
       printf("Error %d reading file, quitting!\n", status);
       return EXIT_FAILURE;
     }
@@ -188,14 +188,14 @@ int main() {                                                     /* Definition o
         printf("Error, file has different amount of columns (%d) than nylr (%d).\n", co2_nlyr, nlyr);
         return EXIT_FAILURE;
       }
-      printf("co2.dtau: found %d lines in file\n", co2_lines);
+      printf("co2.dtau: found %d lines in file\n", co2_nwvl);
     }
 
-    lambda_co2 = calloc(co2_lines, sizeof(double));
-    for(iwvl=0; iwvl<co2_lines; iwvl++) {
-      lambda_co2[co2_lines-iwvl-1] = 1.0/(100.0*wvn[iwvl]);
+    lambda_co2 = calloc(co2_nwvl, sizeof(double));
+    for(iwvl=0; iwvl<co2_nwvl; iwvl++) {
+      lambda_co2[co2_nwvl-iwvl-1] = 1.0/(100.0*wvn[iwvl]);
     }
-    printf("CO2 Profile: min=%e, max=%e\n", lambda_co2[0], lambda_co2[co2_lines-1]);
+    printf("CO2 Profile: min=%e, max=%e\n", lambda_co2[0], lambda_co2[co2_nwvl-1]);
     free(wvn);
 
     /* nwvl goes only from: WAVELENGTH_STEP_ROUGH, ..., lambda_co2 */
