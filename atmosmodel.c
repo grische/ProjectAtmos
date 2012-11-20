@@ -18,6 +18,7 @@
 #define TIME_MAX 3600 * 24 * 360  /* seconds */
 
 #define WAVELENGTH_STEP_ROUGH 1.0E-7  /* meters */
+#define WAVELENGTH_INC_STEP   100     /* read every nth value */
 
 static int sortfunc (const void *a, const void *b) {             /* Defining sortfunc */
   
@@ -289,6 +290,16 @@ int main() {                                                     /* Definition o
       }
     }
    
+    /* CO2 absorption */
+    for(iwvl=0; iwvl<co2_nwvl-WAVELENGTH_INC_STEP-1; iwvl+=WAVELENGTH_INC_STEP) {
+      schwarzschild(deltatau_co2[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda_co2[iwvl]);
+      //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
+      const double dstep = lambda_co2[iwvl]-lambda_co2[iwvl+WAVELENGTH_INC_STEP];
+      for(ilev=0; ilev<nlev; ilev++) {
+	edn[ilev] += edntmp[ilev]*dstep;
+	eup[ilev] += euptmp[ilev]*dstep;
+      }
+    }  
     /* E-netto */
     for(ilyr=0; ilyr<nlyr; ilyr++) {
       enet[ilyr] = eup[ilyr+1] + edn[ilyr] - eup[ilyr] - edn[ilyr+1];
@@ -334,7 +345,7 @@ int main() {                                                     /* Definition o
       //printf("%d %f\n", ilyr, theta[ilyr]);
     }
 
-    if(timesteps % (int)(50) == 0) {
+    if(timesteps % (int)(5) == 0) {
       printf ("timestep %d\n", timesteps);
 
       /* Printing time in readable format
