@@ -17,8 +17,7 @@
 
 #define TIME_MAX 3600 * 24 * 360  /* seconds */
 
-#define WAVELENGTH_MAX  1.0E-4  /* meters */
-#define WAVELENGTH_STEP 1.0E-6  /* meters */
+#define WAVELENGTH_STEP_ROUGH 1.0E-7  /* meters */
 
 static int sortfunc (const void *a, const void *b) {             /* Defining sortfunc */
   
@@ -146,7 +145,7 @@ int main() {                                                     /* Definition o
   int instabil=FALSE;
 
   int iwvl=0;
-  int nwvl=WAVELENGTH_MAX/WAVELENGTH_STEP;
+  int nwvl;
 
   double deltap=PSURF/nlyr;
   double kappa=Ra/cp;
@@ -166,14 +165,10 @@ int main() {                                                     /* Definition o
 
   double *deltaTday=calloc(nlyr, sizeof(double));
   double *deltaT=calloc(nlyr, sizeof(double));
-  double *lambda=calloc(nwvl,sizeof(double));
+  double *lambda_rough;
   double *lambda_co2;
-  double** deltatau=calloc(nwvl,sizeof(double*));
+  double** deltatau_rough;
   double** deltatau_co2;
-
-  for(ilyr=0; iwvl<nwvl; iwvl++) {
-    deltatau[iwvl] = calloc(nlyr,sizeof(double));
-  }
 
   /* initial values from file */
   int co2_lines;
@@ -200,10 +195,39 @@ int main() {                                                     /* Definition o
     for(iwvl=0; iwvl<co2_lines; iwvl++) {
       lambda_co2[co2_lines-iwvl-1] = 1.0/(100.0*wvn[iwvl]);
     }
-
+    printf("CO2 Profile: min=%e, max=%e\n", lambda_co2[0], lambda_co2[co2_lines-1]);
     free(wvn);
+
+    /* nwvl goes only from: WAVELENGTH_STEP_ROUGH, ..., lambda_co2 */
+    nwvl = lambda_co2[0] / WAVELENGTH_STEP_ROUGH;
+    printf("nwvl = %e / %e = %d\n", lambda_co2[0], WAVELENGTH_STEP_ROUGH, nwvl);
+
+    /* initialize tau matrix non-co2 iwvl */
+    deltatau_rough = calloc(nwvl,sizeof(double*));
+    for(iwvl=0; iwvl<nwvl; iwvl++) {
+      deltatau_rough[iwvl] = calloc(nlyr,sizeof(double));
+    }
+   
+    /* initialize lambda for each non-co2 iwvl */
+    lambda_rough = calloc(nwvl,sizeof(double));
+    for (iwvl=0; iwvl<nwvl; iwvl++) {
+      lambda_rough[iwvl]= (iwvl+1)*WAVELENGTH_STEP_ROUGH;
+    }
+
+    for (ilyr=0; ilyr<nlyr; ilyr++) {
+      for (iwvl=0; iwvl<nwvl; iwvl++) {
+        if(lambda_rough[iwvl]<8.0E-6) {
+          /* deltatau = 10.0/nlyr  for  0 ... 80 nm */
+          deltatau_rough[iwvl][ilyr]=10.0/nlyr;
+        } 
+        else {
+          /* deltatau =  0.5/nlyr  for  80 nm ... lambda_co2_min */
+          deltatau_rough[iwvl][ilyr]=0.5/nlyr;
+        }
+      }
+    }
+
   }
-  printf("CO2 Profile: max=%e, min=%e\n", lambda_co2[0], lambda_co2[co2_lines-1]);
 
 
   plscolbg (255, 255, 255);   /* background color white */
@@ -243,33 +267,6 @@ int main() {                                                     /* Definition o
   /*   printf ("tau=%f\n", deltatau[ilyr]); */
   /* } */
 
- 
-
-  lambda[0]=0;
-
-  for (iwvl=0; iwvl<nwvl; iwvl++) {
-    lambda[iwvl]= (iwvl+1)*WAVELENGTH_STEP;
-    // printf("iwvl= %d, lambda= %g\n", iwvl, lambda[iwvl]);
-  }
-
-  for (ilyr=0; ilyr<nlyr; ilyr++) {
-
-    for (iwvl=0; iwvl<8; iwvl++) {
-      deltatau[iwvl][ilyr]=10.0/nlyr;
-    }
-
-    for (iwvl=8; iwvl<13; iwvl++) {
-      deltatau[iwvl][ilyr]=0.5/nlyr;
-    }
-
-    for (iwvl=13; iwvl<nwvl; iwvl++) {
-      deltatau[iwvl][ilyr]=5.0/nlyr;
-    }
-
-    // for (iwvl=0; iwvl<nwvl; iwvl++) {
-    //   printf("ilyr=%d, iwvl= %d, deltatau= %e, lambda= %g\n", ilyr, iwvl, deltatau[iwvl][ilyr], lambda[iwvl]);
-    // }
-  }
   while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
@@ -281,12 +278,13 @@ int main() {                                                     /* Definition o
     }
 
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
+    /* Non-CO2 absorption */
     for(iwvl=0; iwvl<nwvl; iwvl++) {
-      schwarzschild(deltatau[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda[iwvl]);
+      schwarzschild(deltatau_rough[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda_rough[iwvl]);
       //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
       for(ilev=0; ilev<nlev; ilev++) {
-	edn[ilev] += edntmp[ilev]*WAVELENGTH_STEP;
-	eup[ilev] += euptmp[ilev]*WAVELENGTH_STEP;
+	edn[ilev] += edntmp[ilev]*WAVELENGTH_STEP_ROUGH;
+	eup[ilev] += euptmp[ilev]*WAVELENGTH_STEP_ROUGH;
       }
     }
    
@@ -386,7 +384,6 @@ int main() {                                                     /* Definition o
   printf("\nTsurf=%f\n", Tsurf);
 
   sleep(30);
-
 
   return 0;
 }
