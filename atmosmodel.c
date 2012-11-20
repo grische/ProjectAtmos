@@ -3,6 +3,7 @@
 #include <math.h>
 #include <plplot/plplot.h>
 #include "schwarz.h"
+#include "ascii.h"
 
 #define FALSE 0
 #define TRUE 1
@@ -171,6 +172,48 @@ int main() {                                                     /* Definition o
   for(ilyr=0; iwvl<nwvl; iwvl++) {
     deltatau[iwvl] = calloc(nlyr,sizeof(double));
   }
+
+  /* initial values from file */
+  int co2_lines;
+  double co2_max;
+  double co2_min;
+  double co2_step;
+  {
+    /* the variables initialized inside brackets are only valid until the bracket closes */
+    int max_columns=0, min_columns=0;
+    double **data=NULL;
+    int status=0;
+
+    /* read file */
+    if ( (status = ASCII_file2double ("co2.dtau", &co2_lines, &max_columns, &min_columns, &data)) != 0) {
+      printf("Error %d reading file, quitting!\n", status);
+      return EXIT_FAILURE;
+    }
+    else {
+      if ( max_columns != min_columns ) {
+        printf("Error, file is corrupted. max_cols = %d, min_cols = %d\n", max_columns, min_columns);
+        return EXIT_FAILURE;
+      }
+      else if ( max_columns != nlyr + 1) {
+        printf("Error, file has different amount of columns (%d) than nylr (%d).\n", max_columns, nlyr);
+        return EXIT_FAILURE;
+      }
+      printf("co2.dtau: found %d lines, %d max_cols, %d min_cols  in file\n", co2_lines, max_columns, min_columns);
+    }
+
+    /* wavelengths are saved in data[0][0], data[1][0], ..., data[co2_lines][0] */
+    co2_max = 1.0/(100.0*data[co2_lines-1][0]);
+    co2_min = 1.0/(100.0*data[0][0]);
+    co2_step = 1.0/(data[0][0]*100.0)  - 1.0/(data[1][0] * 100.0);
+
+    /*
+    *first   = ASCII_column (data, *n, 0);
+    *second  = ASCII_column (data, *n, 1);
+    *third   = ASCII_column (data, *n, 2);
+    */
+    ASCII_free_double (data, co2_lines);
+  }
+  printf("CO2 Profile: max=%e, step=%e, min=%e\n", co2_max, co2_step, co2_min);
 
 
   plscolbg (255, 255, 255);   /* background color white */
