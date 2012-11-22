@@ -62,8 +62,8 @@ int plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
   plclear();    /* clear subpage     */
   plcol0 (15);  /* color black       */
 
-  plwind( 0, 400, 0, 24000 );  /* xmin, xmax, ymin, ymax */
-  plbox( "bcnst", 100, 0, "bcnst", 4000.0, 0 );
+  plwind( 0, 400, 0, 40000 );  /* xmin, xmax, ymin, ymax */
+  plbox( "bcnst", 100, 0, "bcnst", 5000.0, 0 );
   pllab ("temperature [K]", "z [m]", "");  /* axis labels     */
 
   plcol0 (14);                         /* color blue  */
@@ -79,7 +79,7 @@ int plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
   plcol0 (15);  /* color black       */
 
   plwind( -20, 20, PSURF, 0 );  /* xmin, xmax, ymin, ymax */
-  plbox( "bcnst", 2, 0, "bcnst", 4000.0, 0 );
+  plbox( "bcnst", 2, 0, "bcnst", 150.0, 0 );
   pllab ("Heating Rate [T/day]", "p [hPa]", "");  /* axis labels     */
 
   plcol0 (12);                         /* color blue  */
@@ -96,8 +96,8 @@ int plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
   plcol0 (15);  /* color black       */
 
 
-  plwind( -20, 20, 0, 24000 );  /* xmin, xmax, ymin, ymax */
-  plbox( "bcnst", 2, 0, "bcnst", 4000.0, 0 );
+  plwind( -20, 20, 0, 40000 );  /* xmin, xmax, ymin, ymax */
+  plbox( "bcnst", 2, 0, "bcnst", 5000.0, 0 );
   pllab ("Heating Rate [T/day]", "z [m]", "");  /* axis labels     */
 
   plcol0 (12);                         /* color blue  */
