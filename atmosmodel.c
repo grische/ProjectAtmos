@@ -251,22 +251,41 @@ int main() {                                                     /* Definition o
    
   
   
-  for(ilyr=0; ilyr<nlyr; ilyr++) {                             /* Temperature for all Layers 255K */
-    T[ilyr]=Tsurf*pow((plyr[ilyr]/PSURF),kappa);
-  }
+  {
+    double *Tlev;
+    double *temp;
+    int status;
+    int ntemplev;
+   
+    
+    status = read_3c_file("fpda.atm", &temp, &temp, &Tlev, &ntemplev);
+    if (status !=0) {
+      printf("Error reading Temperature profile\n");
+      return EXIT_FAILURE;
+    }
+    else if (ntemplev != nlev) {
+      printf("Error! nlev fault!!!!!\n");
+      return EXIT_FAILURE;
+    }
 
-  for (ilyr=0;ilyr<nlyr;ilyr++) {
-    T[ilyr]=100;
-  }
- 
-  for(ilyr=0;ilyr<nlyr; ilyr++){
-    printf ("T=%f\n", T[ilyr]);
-  }
+    for (ilev=0; ilev<nlev; ilev++) {
+      printf("ilev = %d, Tlev = %f\n", ilev, Tlev[ilev]);
+    }
 
-  /* for (ilyr=0; ilyr<nlyr; ilyr++){ */
-  /*   deltatau[ilyr]=0.1; */
-  /*   printf ("tau=%f\n", deltatau[ilyr]); */
-  /* } */
+
+    for (ilyr=0;ilyr<nlyr;ilyr++) {
+      T[ilyr]=(Tlev[ilyr]+Tlev[ilyr+1])/2;
+      printf("ilyr = %d, T = %f\n", ilyr, T[ilyr]);
+    }
+
+    Tsurf=Tlev[nlev-1];
+    
+    printf("Tsurf = %f\n", Tsurf);
+    
+    free(temp);
+    free(Tlev);
+
+  }
 
   while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
