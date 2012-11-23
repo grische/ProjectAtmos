@@ -91,5 +91,8 @@ int schwarzschild(const double* deltatau, const double *T, const int nlev, const
   //  printf (  "--%d-- ilev, eup = %f, Lbelow = %f,edn = %f \t--%d--\n" ,ilev,  Eup[ilev], lup[ilev], edn[ilev], ilev);
   // }
 
+  free(lup);
+  free(ldn);
+
   return EXIT_SUCCESS;
 }
