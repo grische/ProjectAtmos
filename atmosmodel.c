@@ -294,7 +294,7 @@ int main() {                                                     /* Definition o
     for(iwvl=0; iwvl<co2_nwvl-WAVELENGTH_INC_STEP-1; iwvl+=WAVELENGTH_INC_STEP) {
       schwarzschild(deltatau_co2[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda_co2[iwvl]);
       //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
-      const double dstep = lambda_co2[iwvl]-lambda_co2[iwvl+WAVELENGTH_INC_STEP];
+      const double dstep = lambda_co2[iwvl+WAVELENGTH_INC_STEP]-lambda_co2[iwvl];
       for(ilev=0; ilev<nlev; ilev++) {
 	edn[ilev] += edntmp[ilev]*dstep;
 	eup[ilev] += euptmp[ilev]*dstep;
