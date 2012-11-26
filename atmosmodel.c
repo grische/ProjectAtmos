@@ -17,8 +17,8 @@
 
 #define TIME_MAX 3600 * 24 * 360  /* seconds */
 
-#define WAVELENGTH_STEP_ROUGH 1.0E-7  /* meters */
-#define WAVELENGTH_INC_STEP   100     /* read every nth value */
+#define WAVELENGTH_STEP_ROUGH 1.0E-8  /* meters */
+#define WAVELENGTH_INC_STEP   1     /* read every nth value */
 
 static int sortfunc (const void *a, const void *b) {             /* Defining sortfunc */
   
@@ -202,7 +202,7 @@ int main() {                                                     /* Definition o
 
     /* nwvl goes only from: WAVELENGTH_STEP_ROUGH, ..., lambda_co2 */
     nwvl_small=(lambda_co2[0]/WAVELENGTH_STEP_ROUGH);
-    nwvl = nwvl_small+((100.0E-6 - lambda_co2[co2_nwvl-1])/WAVELENGTH_STEP_ROUGH);
+    nwvl = nwvl_small+((1000.0E-6 - lambda_co2[co2_nwvl-1])/WAVELENGTH_STEP_ROUGH);
     printf("nwvl = %e / %e = %d\n", lambda_co2[0], WAVELENGTH_STEP_ROUGH, nwvl);
 
     /* initialize tau matrix non-co2 iwvl */
@@ -332,7 +332,11 @@ int main() {                                                     /* Definition o
     /* E-netto */
     for(ilyr=0; ilyr<nlyr-1; ilyr++) {
       enet[ilyr] = eup[ilyr+1] + edn[ilyr] - eup[ilyr] - edn[ilyr+1];
-      //printf("enet[%d] = %e - %e = %e\n", ilyr, eup[ilyr+1]+edn[ilyr], eup[ilyr] + edn[ilyr+1], enet[ilyr]);
+     
+    }
+
+    for (ilev=0; ilev<nlev; ilev++) {
+      printf("ilev = %d, eup = %f, edn = %f\n", ilev, eup[ilev], edn[ilev]);
     }
 
     /* Temperature gain for each layer */
@@ -412,9 +416,9 @@ int main() {                                                     /* Definition o
       /*   printf("ilyr %d, z=%f,  plyr=%f,theta=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr],theta[ilyr], T[ilyr]); */
       /* } */
 
-      /* for (ilev=0; ilev<nlev; ilev++) { */
-      /* 	printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]); */
-      /* } */
+      for (ilev=0; ilev<nlev; ilev++) {
+      	printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]);
+      }
     }
     
   }                                       /* End of Loop */
