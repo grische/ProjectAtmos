@@ -200,7 +200,7 @@ int main() {                                                     /* Definition o
     free(wvn);
 
     /* nwvl goes only from: WAVELENGTH_STEP_ROUGH, ..., lambda_co2 */
-    nwvl = lambda_co2[0] / WAVELENGTH_STEP_ROUGH;
+    nwvl = (lambda_co2[0] / WAVELENGTH_STEP_ROUGH)+((100.0E-6 - lambda_co2[co2_nwvl-1])/WAVELENGTH_STEP_ROUGH);
     printf("nwvl = %e / %e = %d\n", lambda_co2[0], WAVELENGTH_STEP_ROUGH, nwvl);
 
     /* initialize tau matrix non-co2 iwvl */
@@ -221,11 +221,18 @@ int main() {                                                     /* Definition o
           /* deltatau = 10.0/nlyr  for  0 ... 80 nm */
           deltatau_rough[iwvl][ilyr]=10.0/nlyr;
         } 
-        else {
+        if(lambda_rough[iwvl] >= 8.0E-6 && lambda_rough[iwvl] < lambda_co2[0]) {
           /* deltatau =  0.5/nlyr  for  80 nm ... lambda_co2_min */
           deltatau_rough[iwvl][ilyr]=0.5/nlyr;
         }
+	
+	if(lambda_rough[iwvl] > lambda_co2[co_nwvl-1]) {
+	  deltatau_rough[iwvl][ilyr]=10.0/nlyr;
+
+
+	}
       }
+      
     }
 
   }
@@ -320,13 +327,13 @@ int main() {                                                     /* Definition o
       }
     }  
     /* E-netto */
-    for(ilyr=0; ilyr<nlyr; ilyr++) {
+    for(ilyr=0; ilyr<nlyr-1; ilyr++) {
       enet[ilyr] = eup[ilyr+1] + edn[ilyr] - eup[ilyr] - edn[ilyr+1];
       //printf("enet[%d] = %e - %e = %e\n", ilyr, eup[ilyr+1]+edn[ilyr], eup[ilyr] + edn[ilyr+1], enet[ilyr]);
     }
 
     /* Temperature gain for each layer */
-    for (ilyr=0; ilyr<nlyr; ilyr++)  {
+    for (ilyr=0; ilyr<nlyr-1; ilyr++)  {
       deltaT[ilyr]=(enet[ilyr]*g*deltat)/((deltap*100.0)*cp);
       T[ilyr] +=deltaT[ilyr];
       //printf("dT[ilyr] = %f\n", ilyr, deltaT[ilyr]);
@@ -334,8 +341,11 @@ int main() {                                                     /* Definition o
   
     
     /* Surface Temperature Gain */
-    deltaTsurf=((Esol+edn[nlev-1]-eup[nlev-1])*g*deltat)/((deltap*100.0)*cp);
-    Tsurf += deltaTsurf;
+    deltaT[nlyr-1]=((Esol+edn[nlyr-1]-eup[nlyr-1])*g*deltat)/((deltap*100.0)*cp);
+    T[nlyr-1] += deltaT[nlyr-1];
+
+
+    Tsurf=T[nlyr-1];
 
   
     
