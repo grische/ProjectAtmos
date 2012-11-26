@@ -147,6 +147,7 @@ int main() {                                                     /* Definition o
 
   int iwvl=0;
   int nwvl;
+  int nwvl_small;
 
   double deltap=PSURF/nlyr;
   double kappa=Ra/cp;
@@ -200,7 +201,8 @@ int main() {                                                     /* Definition o
     free(wvn);
 
     /* nwvl goes only from: WAVELENGTH_STEP_ROUGH, ..., lambda_co2 */
-    nwvl = (lambda_co2[0] / WAVELENGTH_STEP_ROUGH)+((100.0E-6 - lambda_co2[co2_nwvl-1])/WAVELENGTH_STEP_ROUGH);
+    nwvl_small=(lambda_co2[0]/WAVELENGTH_STEP_ROUGH);
+    nwvl = nwvl_small+((100.0E-6 - lambda_co2[co2_nwvl-1])/WAVELENGTH_STEP_ROUGH);
     printf("nwvl = %e / %e = %d\n", lambda_co2[0], WAVELENGTH_STEP_ROUGH, nwvl);
 
     /* initialize tau matrix non-co2 iwvl */
@@ -211,8 +213,11 @@ int main() {                                                     /* Definition o
    
     /* initialize lambda for each non-co2 iwvl */
     lambda_rough = calloc(nwvl,sizeof(double));
-    for (iwvl=0; iwvl<nwvl; iwvl++) {
+    for (iwvl=0; iwvl<nwvl_small; iwvl++) {
       lambda_rough[iwvl]= (iwvl+1)*WAVELENGTH_STEP_ROUGH;
+    }
+    for (iwvl=nwvl_small; iwvl<nwvl; iwvl++) {
+      lambda_rough[iwvl]=(20E-6 - lambda_rough[nwvl_small-1])+((iwvl+1)*WAVELENGTH_STEP_ROUGH);
     }
 
     for (ilyr=0; ilyr<nlyr; ilyr++) {
@@ -226,10 +231,8 @@ int main() {                                                     /* Definition o
           deltatau_rough[iwvl][ilyr]=0.5/nlyr;
         }
 	
-	if(lambda_rough[iwvl] > lambda_co2[co_nwvl-1]) {
+	if(lambda_rough[iwvl] > lambda_co2[co2_nwvl-1]) {
 	  deltatau_rough[iwvl][ilyr]=10.0/nlyr;
-
-
 	}
       }
       
