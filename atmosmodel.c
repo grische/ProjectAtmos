@@ -200,6 +200,16 @@ int main() {                                                     /* Definition o
     printf("CO2 Profile: min=%e, max=%e\n", lambda_co2[0], lambda_co2[co2_nwvl-1]);
     free(wvn);
 
+    printf("Flipping deltatau_co2\n");
+    double* temp = calloc(nlyr, sizeof(double));
+    for (iwvl=0; iwvl<co2_nwvl; iwvl++) {
+        for(ilyr=0; ilyr<nlyr; ilyr++) 
+           temp[nlyr-1-ilyr] = deltatau_co2[iwvl][ilyr];
+        for(ilyr=0; ilyr<nlyr; ilyr++)
+           deltatau_co2[iwvl][ilyr] = temp[ilyr];
+    }
+    free(temp);
+
     /* nwvl goes only from: WAVELENGTH_STEP_ROUGH, ..., lambda_co2 */
     nwvl_small=(lambda_co2[0]/WAVELENGTH_STEP_ROUGH);
     nwvl = nwvl_small+((1000.0E-6 - lambda_co2[co2_nwvl-1])/WAVELENGTH_STEP_ROUGH);
