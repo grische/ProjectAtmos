@@ -318,6 +318,13 @@ int main() {                                                     /* Definition o
 	eup[ilev] += euptmp[ilev]*WAVELENGTH_STEP_ROUGH;
       }
     }
+    /* between non-co2 and co2 */
+    schwarzschild(deltatau_rough[nwvl_small-1], T, nlev, Tsurf, edntmp, euptmp, (lambda_co2[0] + lambda_rough[nwvl_small-1])/2.0 );
+    for(ilev=0; ilev<nlev; ilev++) {
+      edn[ilev] += edntmp[ilev]*(lambda_co2[0]-lambda_rough[nwvl_small-1]);
+      eup[ilev] += euptmp[ilev]*(lambda_co2[0]-lambda_rough[nwvl_small-1]);
+    }
+
    
     /* CO2 absorption */
     for(iwvl=0; iwvl<co2_nwvl-WAVELENGTH_INC_STEP-1; iwvl+=WAVELENGTH_INC_STEP) {
