@@ -3,7 +3,7 @@
 #include <math.h>
 #include <plplot/plplot.h>
 #include "schwarz.h"
-#include "ascii.h"
+#include "mstrnx/ascii.h"
 
 #define FALSE 0
 #define TRUE 1
