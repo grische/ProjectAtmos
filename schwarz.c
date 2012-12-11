@@ -16,18 +16,27 @@ double boltzmann_overpi (const double T) {
   return boltzmann(T)/M_PI;
 }
 
-double planck (const double T, const double lambda) {
-  //printf("planck(%e, %e) = %e\n", T, lambda, c1/(pow(lambda,5)*(exp(c2/(lambda*T))-1.0)));
-  return c1/(pow(lambda,5)*(exp(c2/(lambda*T))-1.0)) / M_PI;
+double planck (const double T, const double lambdalow, const double lambdahigh) {
+  if(lambdalow == lambdahigh)
+    return c1/(pow(lambdalow,5)*(exp(c2/(lambdalow*T))-1.0)) / M_PI;
+  else {
+    const double lambdalow_nano = lambdalow * 1e6;
+    const double lambdahigh_nano = lambdahigh * 1e6;
+    return plkint_(&lambdalow_nano, &lambdahigh_nano, &T);
+  }
 }
 
-double TEmission (double tau, const double Lbelow, const double Tlyr, const double lambda) {
-  double TEmission = Lbelow * exp(-tau) + planck(Tlyr, lambda)*(1.0-exp(-tau));
-    //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
-    return TEmission;
+double TEmission (double tau, const double Lbelow, const double Tlyr, const double lambda, const double lambda2) {
+  double TEmission = Lbelow * exp(-tau) + planck(Tlyr, lambda, lambda2)*(1.0-exp(-tau));
+  //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
+  return TEmission;
 }
 
 int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambda) {
+  return schwarzschild2(deltatau, T, nlev, Ts, edn, eup, lambda, lambda);
+}
+
+int schwarzschild2(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambdalow, const double lambdahigh) {
   
   const double dmu = 0.1;
   //  const double dtau = tau/(nlev-1);
@@ -56,13 +65,13 @@ int schwarzschild(const double* deltatau, const double *T, const int nlev, const
    *
    */
   //Calculation of eup from surface
-  lup[nlev-1] = planck(Ts, lambda);
+  lup[nlev-1] = planck(Ts, lambdalow, lambdahigh);
   eup[nlev-1] = lup[nlev-1]*M_PI;
 
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-      lup[ilev]=TEmission(deltatau[ilev]/mu, lup[ilev+1], T[ilev], lambda);
+      lup[ilev]=TEmission(deltatau[ilev]/mu, lup[ilev+1], T[ilev], lambdalow, lambdahigh);
       eup[ilev] += lup[ilev]*mu*dmu*2.0*M_PI;
       //printf(" eup[nlev-1] = %e\n", eup[nlev-1]);
     }
@@ -81,7 +90,7 @@ int schwarzschild(const double* deltatau, const double *T, const int nlev, const
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=1; ilev<nlev; ilev++) {
       
-      ldn[ilev]= TEmission(deltatau[ilev-1]/mu, ldn[ilev-1], T[ilev-1], lambda);
+      ldn[ilev]= TEmission(deltatau[ilev-1]/mu, ldn[ilev-1], T[ilev-1], lambdalow, lambdahigh);
       edn[ilev] += ldn[ilev]*mu*dmu*2.0*M_PI;
     }
   }
