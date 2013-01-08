@@ -498,9 +498,10 @@ int main() {
       /*   printf("ilyr %d, z=%f,  plyr=%f,theta=%f, T=%f\n", ilyr, z[ilyr], plyr[ilyr],theta[ilyr], T[ilyr]); */
       /* } */
 
-      for (ilev=0; ilev<nlev; ilev++) {
-      	printf("p%f, edn%f, eup%f, enet%f\n", p[ilev], edn[ilev], eup[ilev], enet[ilev]);
+      for (ilyr=0; ilyr<nlyr; ilyr++) {
+      	printf("p%f, edn%f, eup%f, enet%f\n", p[ilyr], edn[ilyr], eup[ilyr], enet[ilyr]);
       }
+      printf("p%f, edn%f, eup%f\n", p[ilyr], edn[ilyr], eup[ilyr]);
     }
    
   }                                     
