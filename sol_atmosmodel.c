@@ -16,14 +16,9 @@
 #define M 0.0289644   /* kg / mol */
 #define g 9.8065      /* m/s^2 */
 
-#define TSURF 100.0    /* K */
 #define PSURF 1000     /* hPa */
 
 #define TIME_MAX 3600 * 24 * 360 * 10 /* seconds */
-
-#define WAVELENGTH_STEP_ROUGH 1.0E-8  /* meters */
-#define WAVELENGTH_INC_STEP   1     /* read every nth value */
-
 
 //------------------- Implement sortfunc ----------------------//
 
@@ -43,7 +38,7 @@ static int sortfunc (const void *a, const void *b) {             /* Defining sor
 //----------------------Plot routine -------------------------//
 
 
-int plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
+void plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
   /* Plot T against p */
 
   pladv(1);     /* select subpage 1  */
@@ -109,26 +104,7 @@ int plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
   plline (nlyr, deltaTday, z);  /* plot temperature profile  */
 
   plcol0 (15);                        /* color black */
-
-
-  /* Tsurftime[timesteps]=T[nlyr-1]; */
-  /* day[timesteps]=timesteps/86.4; */
-
-  /* /\* Plot T against timestep *\/ */
-
-  /* pladv(3);     /\* select subpage 1  *\/ */
-  /* plvsta();     /\* standard viewport *\/ */
-  /* plclear();    /\* clear subpage     *\/ */
-  /* plcol0 (15);  /\* color black       *\/ */
-
-  /* plwind( 0, 315360, 0, 400 );  /\* xmin, xmax, ymin, ymax *\/ */
-  /* plbox( "bcnst", 100000000000, 0, "bcnst", 4000.0, 0 ); */
-  /* pllab ("Heating Rate [T/day]", "z [m]", "");  /\* axis labels     *\/ */
-
-  /* plcol0 (12);                         /\* color blue  *\/ */
-  /* plline (timesteps, day, Tsurftime);  /\* plot temperature profile  *\/ */
-
-  /* plcol0 (15);                        /\* color black *\/ */
+  
 }
 
 
@@ -146,12 +122,8 @@ int main() {
   
   
   const double cp=1004;  /* J/kg K */
-  double deltaTsurf=0; /* K */
   const double deltat=3600.0*4.0;  /* s */
   const double Ra=287; /* J/kg K */
-  //double H=0; /* [Esol] */
-  //double Tsurf = TSURF;
-  // double tau = 5.0;
 
   int timesteps = 0;
   int ilev=0;
@@ -252,11 +224,9 @@ int main() {
   for(ilev=0; ilev<nlev; ilev++) {                              /* Calculation of the Pressure at the Levels p[ilev] */
     p[ilev]=PSURF*ilev/(nlev-1);
   }
-  //printf("%d %f\n", ilev, p[ilev]);
     
   for(ilyr=0; ilyr<nlyr; ilyr++) {                            /* Calculation of the Pressure in the Layers*/
     plyr[ilyr]= 0.5*(p[ilyr]+p[ilyr+1]);
-    //printf("%d %f\n", ilyr, plyr[ilyr]);
   }
    
   
@@ -270,11 +240,6 @@ int main() {
     double *h2otemp;
     double *o3temp;
 
-    /* interpolation weights */
-    //    double weight1;
-    //    double weight2;
-    //    double norm;
-    
     int status;
     int ntemp;
     int itemp;
@@ -350,7 +315,7 @@ int main() {
   //--------------------------------- Starting while-loop ----------------------------------//
   //----------------------------------------------------------------------------------------//
   
-  while (timesteps*deltat<TIME_MAX) {                                       /* Loop limited to 400K */
+  while (timesteps*deltat<TIME_MAX) {
     // printf("\nNew time %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
     timesteps++;
   
@@ -393,11 +358,6 @@ int main() {
       mu_counter = 0;
     else
       mu_counter++;
-    
-      
-    for(ilev=0; ilev<nlev; ilev++) {
-  //    printf("ilev %d, z = %f\n", ilev, z[ilev]);
-    }
 
     //calculate it every two days!
     if(timesteps % 10 == 0)
@@ -405,7 +365,6 @@ int main() {
       status = ck_mstrnx (z, plyr, T, h2o, o3, nlev, /*lyrflag*/ 1, c_co2, c_n2o, c_co, c_ch4, c_o2, &dtaumol, &wgt, &wavelength, &nbnd, &nch);
     
     for(iv=0; iv<nbnd; iv++) {
-      //ignore all wavelength below 1000nm
       //printf("iv = %d, wavelength = %e, S0 = %e\n", iv, wavelength[iv], S_0[iv]);
 	  
       
@@ -535,8 +494,6 @@ int main() {
   }
 
   printf("\nTsurf=%f\n", T[nlyr-1]);
-
-  sleep(30);
 
   return 0;
 }
