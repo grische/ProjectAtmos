@@ -354,10 +354,8 @@ int main() {
     //--------------------- Use k-distribution ---------------------//
       
     /* mu_0 is defined for a 8-part cycle of the earth, i.e. a timestep of 3 hours! */
-    if(mu_counter == mu_counterlimit)
+    if(++mu_counter == mu_counterlimit)
       mu_counter = 0;
-    else
-      mu_counter++;
 
     //calculate it every two days!
     if(timesteps % 10 == 0)
