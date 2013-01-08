@@ -4,6 +4,7 @@
 #include <plplot/plplot.h>
 #include "schwarz.h"
 #include "mstrnx/ascii.h"
+#include "mstrnx/rodents_solar.h"
 
 
 //--------------------- Define constants ----------------------//
@@ -145,7 +146,6 @@ int main() {
   
   
   const double cp=1004;  /* J/kg K */
-  const double Esol=235;  /* W/m^2 = J*/
   double deltaTsurf=0; /* K */
   const double deltat=1000;  /* s */
   const double Ra=287; /* J/kg K */
@@ -182,7 +182,7 @@ int main() {
   double ***dtaumol;
   double **wgt;
   double *wavelength;
-  int nbnd;
+  int nbnd=0;
   int *nch;
   int iv;
   int iq;
@@ -192,12 +192,41 @@ int main() {
   double *edn=calloc(nlev, sizeof(double));
   double *euptmp=calloc(nlev, sizeof(double));
   double *edntmp=calloc(nlev, sizeof(double));
+  double *edirtmp=calloc(nlev, sizeof(double));
   double *enet=calloc(nlyr, sizeof(double));
 
   double *deltaTday=calloc(nlyr, sizeof(double));
   double *deltaT=calloc(nlyr, sizeof(double));
   
-
+  //------------- Define variables for Rodents---------------//
+  
+  const double gr_albedo=0.3; /* 1 */
+  const double mu_0=0.25; /* 1 */
+  double* S_0;
+  double* omega_0=calloc(nlyr,sizeof(double));
+  double* gassy=calloc(nlyr,sizeof(double));
+  double* f=calloc(nlyr,sizeof(double));
+  
+  
+  for(ilyr=0; ilyr<nlyr; ilyr++) {
+   omega_0[ilyr] = 0.f;
+   gassy[ilyr] = 0; //0.85f;
+   f[ilyr] = 0; //0.8f;
+  }
+  
+  {
+    double *temp1, *temp2, *temp3;
+    int temp4;
+      status=read_4c_file("mstrnx.data/solar.dat", &temp1, &temp2, &temp3, &S_0, &temp4);
+      if (status !=0) {
+      printf("Error reading Solar.dat\n");
+      return EXIT_FAILURE;
+      }
+      
+      free(temp1);
+      free(temp2);
+      free(temp3);
+  } 
   
   //--------------------- Plot color -------------------------//
 
@@ -243,7 +272,7 @@ int main() {
     unsigned int mintemp = 0;
     unsigned int mintemp2 = 0;
     
-    status = read_5c_file("afglus.atm", &ztemp, &ptemp, &Ttemp, &h2otemp, &o3temp, &ntemp);
+    status = read_5c_file("mstrnx.data/afglus.atm", &ztemp, &ptemp, &Ttemp, &h2otemp, &o3temp, &ntemp);
     if (status !=0) {
       printf("Error reading Temperature profile\n");
       return EXIT_FAILURE;
@@ -359,8 +388,7 @@ int main() {
     
     for(iv=0; iv<nbnd; iv++) {
       //ignore all wavelength below 1000nm
-      if(wavelength[iv]<500)
-	continue;
+      //printf("iv = %d, wavelength = %e, S0 = %e\n", iv, wavelength[iv], S_0[iv]);
 	  
       
       //------------- Use schwarzschild and sum edn eup --------//
@@ -374,9 +402,17 @@ int main() {
 	  eup[ilev] += euptmp[ilev]*wgt[iv][iq];
 	  //printf("ilev = %d, iv = %d of %d, iq = %d of %d, wgt = %e, edntmp = %e, euptmp = %e\n", ilev, iv, nbnd, iq, nch[iv], wgt[iv][iq], edntmp[ilev], euptmp[ilev]);
 	}
+	
+	//------------------- Include Rodents---------------------//	
+	rodents_solar(nlyr, dtaumol[iv][iq], omega_0, gassy, f, S_0[iv], mu_0, gr_albedo, edntmp, euptmp, edirtmp);
+	
+	for(ilev=0; ilev<nlev; ilev++) {
+	  edn[ilev] += (edntmp[ilev]+edirtmp[ilev])*wgt[iv][iq];
+	  eup[ilev] += euptmp[ilev]*wgt[iv][iq];
+	  //printf("ilev = %d, iv = %d of %d, iq = %d of %d, wgt = %e, edntmp = %e, euptmp = %e, edirtmp = %e\n", ilev, iv, nbnd, iq, nch[iv], wgt[iv][iq], edntmp[ilev], euptmp[ilev], edirtmp[ilev]);
+	}
       }
     }
-     ;
      
     //---------------- Calculate enet -----------------------// 
     
@@ -399,7 +435,7 @@ int main() {
   
     //----------------Calculate Temperature gain for ground layer ---------//
     
-    deltaT[nlyr-1]=((Esol+edn[nlyr-1]-eup[nlyr-1])*g*deltat)/((deltap*100.0)*cp);
+    deltaT[nlyr-1]=((edn[nlyr-1]-eup[nlyr-1])*g*deltat)/((deltap*100.0)*cp);
     T[nlyr-1] += deltaT[nlyr-1];
 
 
