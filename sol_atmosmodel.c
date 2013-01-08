@@ -201,7 +201,16 @@ int main() {
   //------------- Define variables for Rodents---------------//
   
   const double gr_albedo=0.3; /* 1 */
-  const double mu_0=0.25; /* 1 */
+  
+  const int mu_counterlimit = (int)(24.0 * 3600 / deltat);
+  double* const mu_0 = calloc(mu_counterlimit, sizeof(double));
+  int mu_counter;
+  for(mu_counter=0; mu_counter < mu_counterlimit; mu_counter++) {
+    mu_0[mu_counter] = cos( 2.0*M_PI / mu_counterlimit * (mu_counter + mu_counter+1) / 2.0 );
+    printf("mu_0[%d] = %e\n", mu_counter, mu_0[mu_counter]);
+  }
+  mu_counter = 0;
+  
   double* S_0;
   double* omega_0=calloc(nlyr,sizeof(double));
   double* gassy=calloc(nlyr,sizeof(double));
@@ -379,6 +388,13 @@ int main() {
       
     //--------------------- Use k-distribution ---------------------//
       
+    /* mu_0 is defined for a 8-part cycle of the earth, i.e. a timestep of 3 hours! */
+    if(mu_counter == mu_counterlimit)
+      mu_counter = 0;
+    else
+      mu_counter++;
+    
+      
     for(ilev=0; ilev<nlev; ilev++) {
   //    printf("ilev %d, z = %f\n", ilev, z[ilev]);
     }
@@ -405,13 +421,15 @@ int main() {
 	  //printf("ilev = %d, iv = %d of %d, iq = %d of %d, wgt = %e, edntmp = %e, euptmp = %e\n", ilev, iv, nbnd, iq, nch[iv], wgt[iv][iq], edntmp[ilev], euptmp[ilev]);
 	}
 	
-	//------------------- Include Rodents---------------------//	
-	rodents_solar(nlyr, dtaumol[iv][iq], omega_0, gassy, f, S_0[iv], mu_0, gr_albedo, edntmp, euptmp, edirtmp);
-	
-	for(ilev=0; ilev<nlev; ilev++) {
-	  edn[ilev] += (edntmp[ilev]+edirtmp[ilev])*wgt[iv][iq];
-	  eup[ilev] += euptmp[ilev]*wgt[iv][iq];
-	  //printf("ilev = %d, iv = %d of %d, iq = %d of %d, wgt = %e, edntmp = %e, euptmp = %e, edirtmp = %e\n", ilev, iv, nbnd, iq, nch[iv], wgt[iv][iq], edntmp[ilev], euptmp[ilev], edirtmp[ilev]);
+	//------------------- Include Rodents---------------------//  
+	if(mu_0[mu_counter] > 0) {
+	  rodents_solar(nlyr, dtaumol[iv][iq], omega_0, gassy, f, S_0[iv], mu_0[mu_counter], gr_albedo, edntmp, euptmp, edirtmp);
+	  
+	  for(ilev=0; ilev<nlev; ilev++) {
+	    edn[ilev] += (edntmp[ilev]+edirtmp[ilev])*wgt[iv][iq];
+	    eup[ilev] += euptmp[ilev]*wgt[iv][iq];
+	    //printf("ilev = %d, iv = %d of %d, iq = %d of %d, wgt = %e, edntmp = %e, euptmp = %e, edirtmp = %e\n", ilev, iv, nbnd, iq, nch[iv], wgt[iv][iq], edntmp[ilev], euptmp[ilev], edirtmp[ilev]);
+	  }
 	}
       }
     }
