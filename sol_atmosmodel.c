@@ -19,7 +19,7 @@
 #define TSURF 100.0    /* K */
 #define PSURF 1000     /* hPa */
 
-#define TIME_MAX 3600 * 24 * 360  /* seconds */
+#define TIME_MAX 3600 * 24 * 360 * 10 /* seconds */
 
 #define WAVELENGTH_STEP_ROUGH 1.0E-8  /* meters */
 #define WAVELENGTH_INC_STEP   1     /* read every nth value */
@@ -147,7 +147,7 @@ int main() {
   
   const double cp=1004;  /* J/kg K */
   double deltaTsurf=0; /* K */
-  const double deltat=1000;  /* s */
+  const double deltat=3600.0*4.0;  /* s */
   const double Ra=287; /* J/kg K */
   //double H=0; /* [Esol] */
   //double Tsurf = TSURF;
@@ -383,8 +383,10 @@ int main() {
   //    printf("ilev %d, z = %f\n", ilev, z[ilev]);
     }
 
-    //warning, wavelength is in nm!
-    status = ck_mstrnx (z, plyr, T, h2o, o3, nlev, /*lyrflag*/ 1, c_co2, c_n2o, c_co, c_ch4, c_o2, &dtaumol, &wgt, &wavelength, &nbnd, &nch);
+    //calculate it every two days!
+    if(timesteps % 10 == 0)
+      //warning, wavelength is in nm!
+      status = ck_mstrnx (z, plyr, T, h2o, o3, nlev, /*lyrflag*/ 1, c_co2, c_n2o, c_co, c_ch4, c_o2, &dtaumol, &wgt, &wavelength, &nbnd, &nch);
     
     for(iv=0; iv<nbnd; iv++) {
       //ignore all wavelength below 1000nm
