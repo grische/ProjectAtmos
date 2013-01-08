@@ -358,7 +358,7 @@ int main() {
       mu_counter = 0;
 
     //calculate it every two days!
-    if(timesteps % 10 == 0)
+    if((timesteps-1) % 10 == 0)
       //warning, wavelength is in nm!
       status = ck_mstrnx (z, plyr, T, h2o, o3, nlev, /*lyrflag*/ 1, c_co2, c_n2o, c_co, c_ch4, c_o2, &dtaumol, &wgt, &wavelength, &nbnd, &nch);
     
