@@ -36,16 +36,18 @@ double TEmission (double tau, const double Lbelow, const double Tlyr, const doub
 }
 
 int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambda) {
-  return schwarzschild2(deltatau, T, nlev, Ts, edn, eup, lambda, lambda);
+  int status;
+  double* tmplev = calloc(nlev, sizeof(double));
+  
+  status = schwarzschild2(deltatau, T, nlev, Ts, edn, eup, lambda, lambda, tmplev);
+  free(tmplev);
+  return status;
 }
 
-int schwarzschild2(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambdalow, const double lambdahigh) {
+int schwarzschild2(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambdalow, const double lambdahigh, double* tmplev) {
   
   const double dmu = 0.1;
   //  const double dtau = tau/(nlev-1);
-
-  double *lup=calloc(nlev, sizeof(double));
-  double *ldn=calloc(nlev, sizeof(double));
 
   int ilev;
   double mu;
@@ -68,14 +70,14 @@ int schwarzschild2(const double* deltatau, const double *T, const int nlev, cons
    *
    */
   //Calculation of eup from surface
-  lup[nlev-1] = planck(Ts, lambdalow, lambdahigh);
-  eup[nlev-1] = lup[nlev-1]*M_PI;
+  tmplev[nlev-1] = planck(Ts, lambdalow, lambdahigh);
+  eup[nlev-1] = tmplev[nlev-1]*M_PI;
 
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-      lup[ilev]=TEmission(deltatau[ilev]/mu, lup[ilev+1], T[ilev], lambdalow, lambdahigh);
-      eup[ilev] += lup[ilev]*mu*dmu*2.0*M_PI;
+      tmplev[ilev]=TEmission(deltatau[ilev]/mu, tmplev[ilev+1], T[ilev], lambdalow, lambdahigh);
+      eup[ilev] += tmplev[ilev]*mu*dmu*2.0*M_PI;
       //printf(" eup[nlev-1] = %e\n", eup[nlev-1]);
     }
   }
@@ -87,24 +89,22 @@ int schwarzschild2(const double* deltatau, const double *T, const int nlev, cons
    * quasi ldn[ilyr] = ldn[ilyr-1] exp(-dtau) + B(T[ilyr]) (1-exp(-dtau))
    *
    */
-  ldn[0] = 0;
+  tmplev[0] = 0;
   edn[0] = 0;
   
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=1; ilev<nlev; ilev++) {
       
-      ldn[ilev]= TEmission(deltatau[ilev-1]/mu, ldn[ilev-1], T[ilev-1], lambdalow, lambdahigh);
-      edn[ilev] += ldn[ilev]*mu*dmu*2.0*M_PI;
+      tmplev[ilev]= TEmission(deltatau[ilev-1]/mu, tmplev[ilev-1], T[ilev-1], lambdalow, lambdahigh);
+      edn[ilev] += tmplev[ilev]*mu*dmu*2.0*M_PI;
     }
   }
 
   // output of eup, L, edn
   // for (ilev=0; ilev < nlev; ilev++) {
-  //  printf (  "--%d-- ilev, eup = %f, Lbelow = %f,edn = %f \t--%d--\n" ,ilev,  Eup[ilev], lup[ilev], edn[ilev], ilev);
+  //   if(ilev == 0) printf("\n");
+  //   printf("--%02d-- ilev, eup = %f, ldn = %f, edn = %f \t--%02d--\n", ilev, eup[ilev], tmplev[ilev], edn[ilev], ilev);
   // }
-
-  free(lup);
-  free(ldn);
 
   return EXIT_SUCCESS;
 }
