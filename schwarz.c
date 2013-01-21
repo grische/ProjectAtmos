@@ -26,10 +26,13 @@ double planck (const double T, const double lambdalow, const double lambdahigh) 
   }
 }
 
+double TEmission_fast (const double tau, const double Lbelow, const double dplanck) {
+  return Lbelow * exp(-tau) + dplanck*(1.0-exp(-tau));
+}
+
 double TEmission (double tau, const double Lbelow, const double Tlyr, const double lambda, const double lambda2) {
-  double TEmission = Lbelow * exp(-tau) + planck(Tlyr, lambda, lambda2)*(1.0-exp(-tau));
   //printf ("lup(): L = %f, tau=%f, Lbelow=%f, Tlyr=%f\n", tau, lup, Lbelow, Tlyr);
-  return TEmission;
+  return TEmission_fast(tau, Lbelow, planck(Tlyr, lambda, lambda2));
 }
 
 int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambda) {
