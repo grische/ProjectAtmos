@@ -39,6 +39,7 @@ double alpha (double T) {
 
 
 int plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
+#ifndef _NOPLOT
   /* Plot T against p */
 
   pladv(1);     /* select subpage 1  */
@@ -124,6 +125,7 @@ int plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
   /* plline (timesteps, day, Tsurftime);  /\* plot temperature profile  *\/ */
 
   /* plcol0 (15);                        /\* color black *\/ */
+#endif
 }
 
 
@@ -253,14 +255,14 @@ int main() {                                                     /* Definition o
 
   }
 
-
+#ifndef _NOPLOT
   plscolbg (255, 255, 255);   /* background color white */
   plscol0  (15, 0, 0, 0);     /* set color 15 to black  */
   plsdev ("xwin"); /* if not called, the user is asked! */
   plinit ();
   
   plssub(2,2);
-
+#endif
 
   for(ilev=0; ilev<nlev; ilev++) {                              /* Calculation of the Pressure at the Levels p[ilev] */
     p[ilev]=PSURF*ilev/(nlev-1);

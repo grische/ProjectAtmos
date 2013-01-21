@@ -39,6 +39,7 @@ static int sortfunc (const void *a, const void *b) {             /* Defining sor
 
 
 void plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
+#ifndef _NOPLOT
   /* Plot T against p */
 
   pladv(1);     /* select subpage 1  */
@@ -104,7 +105,7 @@ void plotall(int nlyr, double* T, double* plyr, double* z, double* deltaTday) {
   plline (nlyr, deltaTday, z);  /* plot temperature profile  */
 
   plcol0 (15);                        /* color black */
-  
+#endif
 }
 
 
@@ -213,13 +214,14 @@ int main() {
   
   //--------------------- Plot color -------------------------//
 
+#ifndef _NOPLOT
   plscolbg (255, 255, 255);   /* background color white */
   plscol0  (15, 0, 0, 0);     /* set color 15 to black  */
   plsdev ("xwin"); /* if not called, the user is asked! */
   plinit ();
   
   plssub(2,2);
-
+#endif
   
   //--------------------- Calculate pressure for layers and levels -------------//
 
