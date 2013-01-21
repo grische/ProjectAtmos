@@ -38,13 +38,16 @@ double TEmission (double tau, const double Lbelow, const double Tlyr, const doub
 int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambda) {
   int status;
   double* tmplev = calloc(nlev, sizeof(double));
+  double* tmplyr = calloc(nlev-1, sizeof(double));
   
-  status = schwarzschild2(deltatau, T, nlev, Ts, edn, eup, lambda, lambda, tmplev);
+  status = schwarzschild2(deltatau, T, nlev, Ts, edn, eup, lambda, lambda, tmplev, tmplyr);
+
   free(tmplev);
+  free(tmplyr);
   return status;
 }
 
-int schwarzschild2(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambdalow, const double lambdahigh, double* tmplev) {
+int schwarzschild2(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambdalow, const double lambdahigh, double* tmplev, double* tmplyr) {
   
   const double dmu = 0.1;
   //  const double dtau = tau/(nlev-1);
@@ -56,6 +59,11 @@ int schwarzschild2(const double* deltatau, const double *T, const int nlev, cons
   for(ilev=0; ilev < nlev; ilev++) {
     eup[ilev] = 0;
     edn[ilev] = 0;
+  }
+
+  /* calculate planck for all layers(!!) */
+  for (ilev=0; ilev<nlev-1; ilev++) {
+    tmplyr[ilev] = planck(T[ilev], lambdalow, lambdahigh);
   }
 
   /*
@@ -76,7 +84,7 @@ int schwarzschild2(const double* deltatau, const double *T, const int nlev, cons
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=nlev-2;ilev>=0; ilev--) {
     // integration ueber raumwinkel -> 2*PI und Integration ueber mu
-      tmplev[ilev]=TEmission(deltatau[ilev]/mu, tmplev[ilev+1], T[ilev], lambdalow, lambdahigh);
+      tmplev[ilev] = TEmission_fast(deltatau[ilev]/mu, tmplev[ilev+1], tmplyr[ilev]);
       eup[ilev] += tmplev[ilev]*mu*dmu*2.0*M_PI;
       //printf(" eup[nlev-1] = %e\n", eup[nlev-1]);
     }
@@ -94,8 +102,7 @@ int schwarzschild2(const double* deltatau, const double *T, const int nlev, cons
   
   for (mu=dmu/2; mu <= 1; mu += dmu) {
     for (ilev=1; ilev<nlev; ilev++) {
-      
-      tmplev[ilev]= TEmission(deltatau[ilev-1]/mu, tmplev[ilev-1], T[ilev-1], lambdalow, lambdahigh);
+      tmplev[ilev] = TEmission_fast(deltatau[ilev-1]/mu, tmplev[ilev-1], tmplyr[ilev-1]);
       edn[ilev] += tmplev[ilev]*mu*dmu*2.0*M_PI;
     }
   }

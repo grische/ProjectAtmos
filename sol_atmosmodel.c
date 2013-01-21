@@ -160,6 +160,7 @@ int main() {
   int iq;
   
   double *tmplev=calloc(nlev, sizeof(double)); /* temporary vector with length lev */
+  double *tmplyr=calloc(nlyr, sizeof(double)); /* temporary vector with length lyr */
   
   double *eup=calloc(nlev, sizeof(double));
   double *edn=calloc(nlev, sizeof(double));
@@ -371,7 +372,7 @@ int main() {
 	
       
       for(iq=0; iq<nch[iv]; iq++) {
-	schwarzschild2(dtaumol[iv][iq], T, nlev, T[nlyr-1], edntmp, euptmp, wavelength[iv]*1e-6,wavelength[iv+1]*1e-6, tmplev);	
+	schwarzschild2(dtaumol[iv][iq], T, nlev, T[nlyr-1], edntmp, euptmp, wavelength[iv]*1e-6,wavelength[iv+1]*1e-6, tmplev, tmplyr);	
 
 	for(ilev=0; ilev<nlev; ilev++) {
 	  edn[ilev] += edntmp[ilev]*wgt[iv][iq];
@@ -484,6 +485,7 @@ int main() {
    
   }                                     
 
+  free(tmplyr);
   free(tmplev);
   //----------------- End of while-loop---------------------//
   
