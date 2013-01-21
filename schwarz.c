@@ -35,16 +35,8 @@ double TEmission (double tau, const double Lbelow, const double Tlyr, const doub
   return TEmission_fast(tau, Lbelow, planck(Tlyr, lambda, lambda2));
 }
 
-int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambda) {
-  int status;
-  double* tmplev = calloc(nlev, sizeof(double));
-  double* tmplyr = calloc(nlev-1, sizeof(double));
-  
-  status = schwarzschild2(deltatau, T, nlev, Ts, edn, eup, lambda, lambda, tmplev, tmplyr);
-
-  free(tmplev);
-  free(tmplyr);
-  return status;
+int schwarzschild(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambda, double* tmplev, double* tmplyr) {
+  return schwarzschild2(deltatau, T, nlev, Ts, edn, eup, lambda, lambda, tmplev, tmplyr);
 }
 
 int schwarzschild2(const double* deltatau, const double *T, const int nlev, const double Ts, double *edn, double *eup, const double lambdalow, const double lambdahigh, double* tmplev, double* tmplyr) {

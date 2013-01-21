@@ -159,6 +159,9 @@ int main() {                                                     /* Definition o
   double *z=calloc(nlyr,sizeof(double));
   double *deltaz=calloc(nlyr,sizeof(double));
 
+  double *tmplev=calloc(nlev, sizeof(double)); /* temporary vector with length lev */
+  double *tmplyr=calloc(nlyr, sizeof(double)); /* temporary vector with length lyr */
+
   double *eup=calloc(nlev, sizeof(double));
   double *edn=calloc(nlev, sizeof(double));
   double *euptmp=calloc(nlev, sizeof(double));
@@ -321,7 +324,7 @@ int main() {                                                     /* Definition o
     //schwarzschild(const double tau, const double *T, const int nlev, const double Ts, double *edn, double *eup)
     /* Non-CO2 absorption */
     for(iwvl=0; iwvl<nwvl; iwvl++) {
-      schwarzschild(deltatau_rough[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda_rough[iwvl]);
+      schwarzschild(deltatau_rough[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda_rough[iwvl], tmplev, tmplyr);
       //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
       for(ilev=0; ilev<nlev; ilev++) {
 	edn[ilev] += edntmp[ilev]*WAVELENGTH_STEP_ROUGH;
@@ -329,7 +332,7 @@ int main() {                                                     /* Definition o
       }
     }
     /* between non-co2 and co2 */
-    schwarzschild(deltatau_rough[nwvl_small-1], T, nlev, Tsurf, edntmp, euptmp, (lambda_co2[0] + lambda_rough[nwvl_small-1])/2.0 );
+    schwarzschild(deltatau_rough[nwvl_small-1], T, nlev, Tsurf, edntmp, euptmp, (lambda_co2[0] + lambda_rough[nwvl_small-1])/2.0, tmplev, tmplyr);
     for(ilev=0; ilev<nlev; ilev++) {
       edn[ilev] += edntmp[ilev]*(lambda_co2[0]-lambda_rough[nwvl_small-1]);
       eup[ilev] += euptmp[ilev]*(lambda_co2[0]-lambda_rough[nwvl_small-1]);
@@ -338,7 +341,7 @@ int main() {                                                     /* Definition o
    
     /* CO2 absorption */
     for(iwvl=0; iwvl<co2_nwvl-WAVELENGTH_INC_STEP-1; iwvl+=WAVELENGTH_INC_STEP) {
-      schwarzschild(deltatau_co2[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda_co2[iwvl]);
+      schwarzschild(deltatau_co2[iwvl], T, nlev, Tsurf, edntmp, euptmp, lambda_co2[iwvl], tmplev, tmplyr);
       //printf("dlambda %e: edn[4] = %e\n", dlambda, edntmp[4]*WAVELENGTH_STEP);
       const double dstep = lambda_co2[iwvl+WAVELENGTH_INC_STEP]-lambda_co2[iwvl];
       for(ilev=0; ilev<nlev; ilev++) {
@@ -439,6 +442,9 @@ int main() {                                                     /* Definition o
     }
     
   }                                       /* End of Loop */
+
+  free(tmplev);
+  free(tmplyr);
 
   printf("\nTime %d: T = %f\n", (int)(timesteps*deltat), T[nlyr-1]);
   for (ilyr=0; ilyr<nlyr; ilyr++) {
