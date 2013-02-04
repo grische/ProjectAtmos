@@ -7,14 +7,17 @@
 #include "ckmstrnx.h"
 #include "hydrostat.h"
 
-
 void ck_(int *nln, double *zb, double *pb, double *tb, int *lyrflag,
-	 double *h2o, double *co2, double *o3, double *n2o, double *co, double *ch4, double *o2, 
+	 double *h2o, double *co2, double *o3, double *n2o, double *co,
+	 double *ch4, double *o2,
 	 double *wvn, double *wgt, double *dtau);
 
-int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int nlev, int lyrflag,
-	       double c_co2, double c_n2o, double c_co, double c_ch4, double c_o2,
-	       double ****dtau, double ***wgt, double **wavelength, int *nbnd, int **nch)
+int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3,
+	       int nlev, int lyrflag,
+	       double c_co2, double c_n2o, double c_co, double c_ch4,
+	       double c_o2,
+	       double ****dtau, double ***wgt, double **wavelength,
+	       int *nbnd, int **nch)
 {
   static int first=1;
   int ilyr=0, ilev=0, iv=0, iq=0, j=0, status=0;
@@ -40,12 +43,7 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
   /* parameters to be used for Fortran and C */
   #include "param.h"
 
-  if (nlev>kln+1) {
-    fprintf (stderr, "Error, increase kln in param.h and param.inc to at least %d\n", nlev-1);
-    return -1;
-  }
-
-  *nbnd   =  kbnd;   
+  wvn  = calloc (kbnd+1, sizeof(double));
   
 
   if (first) {
@@ -53,6 +51,32 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
       fprintf (stderr, " ... interpreting pressure, temperature, and densities as layer quantities\n");
     else 
       fprintf (stderr, " ... interpreting pressure, temperature, and densities as level quantities\n");
+
+    if (nlev>kln+1) {
+      fprintf (stderr, "Error, increase kln in param.h and param.inc to at least %d\n", nlev-1);
+      return -1;
+    }
+
+    *nbnd   =  kbnd;   
+
+    strcpy(filename, "mstrnx.data/nch.29");
+    if ((status=read_2c_file (filename, &xtmp, &ytmp, &ntmp))!=0) {
+      fprintf (stderr, "Error %d reading %s\n", status, filename);
+      return status;
+    }
+  
+    if (ntmp!=*nbnd) {
+      fprintf (stderr, "Error, expected %d entries in %s, found %d.\n", *nbnd, filename, ntmp); 
+      return -1;
+    }
+  
+    *nch = calloc (*nbnd, sizeof(int));
+    *wavelength  = calloc (*nbnd+1, sizeof(double));
+
+    for (iv=0; iv<*nbnd; iv++) 
+      (*nch)[*nbnd-1-iv] = (int) (ytmp[iv]+0.5);
+
+    free (xtmp); free (ytmp);
   }
   
   if (lyrflag) { /* interpret pressure, temperature, and densities as layer quantities */
@@ -65,16 +89,6 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
     o2_l  = calloc (nlev-1, sizeof(double));
     
     for (ilev=0; ilev<nlev-1; ilev++)  {
-      /*
-      h2o_l[ilev] = h2o[ilev]*1E-6;
-      o3_l [ilev] = o3 [ilev]*1E-6;
-      co2_l[ilev] = c_co2*1E-6;  
-      n2o_l[ilev] = c_n2o*1E-6;
-      co_l [ilev] = c_co *1E-6;
-      ch4_l[ilev] = c_ch4*1E-6;
-      o2_l [ilev] = c_o2 *1E-6;
-      */
-
       h2o_l[ilev] = h2o[ilev];
       o3_l [ilev] = o3 [ilev];
       co2_l[ilev] = c_co2;  
@@ -85,6 +99,7 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
     }
   }
   else {         /* interpret pressure, temperature, and densities as level quantities */
+#if 0
     /* allocate memory for trace gas profiles */
     h2o_SI = calloc (nlev, sizeof(double));
     o3_SI  = calloc (nlev, sizeof(double));
@@ -128,29 +143,13 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
       ch4_l [ilyr] *= 1E6 / denscol[ilyr];
       o2_l  [ilyr] *= 1E6 / denscol[ilyr];
     }
+#else
+    fprintf(stderr,"Error, this mode not implemented\n");
+    return -1;
+#endif
   }
     
 //  fprintf (stderr, "%.10f %.10f %.10f %.10f %.10f %.10f %.10f\n", h2o_l[nlyr-1], co2_l[nlyr-1], o3_l[nlyr-1], n2o_l[nlyr-1], co_l[nlyr-1], ch4_l[nlyr-1], o2_l[nlyr-1]);
-  
-  strcpy(filename, "mstrnx.data/nch.29");
-  if ((status=read_2c_file (filename, &xtmp, &ytmp, &ntmp))!=0) {
-    fprintf (stderr, "Error %d reading %s\n", status, filename);
-    return status;
-  }
-  
-  if (ntmp!=*nbnd) {
-    fprintf (stderr, "Error, expected %d entries in %s, found %d.\n", *nbnd, filename, ntmp); 
-    return -1;
-  }
-  
-  *nch = calloc (*nbnd, sizeof(int));
-  wvn  = calloc (*nbnd+1, sizeof(double));
-  *wavelength  = calloc (*nbnd+1, sizeof(double));
-  
-  for (iv=0; iv<*nbnd; iv++) 
-    (*nch)[*nbnd-1-iv] = (int) (ytmp[iv]+0.5);
-
-  free (xtmp); free (ytmp);
 
   wgt_fortran  = calloc (*nbnd*kch, sizeof(double));
   dtau_fortran = calloc (*nbnd*kch*kln, sizeof(double));
@@ -163,11 +162,20 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
   for (iv=0; iv<=*nbnd; iv++) 
     (*wavelength)[*nbnd-iv] = 1.0E7 / wvn[iv];
 
-  /* convert 1D Fortran array to 2D and 3D C arrays */
-  *wgt = calloc (*nbnd, sizeof(double *));
-  for (iv=0;iv<*nbnd;iv++)
-    (*wgt)[iv] = calloc ((*nch)[iv], sizeof(double));
+  if (first) {
+    *wgt = calloc (*nbnd, sizeof(double *));
+    for (iv=0;iv<*nbnd;iv++)
+      (*wgt)[iv] = calloc ((*nch)[iv], sizeof(double));
 
+    *dtau = calloc (*nbnd, sizeof(double **));
+    for (iv=0;iv<*nbnd;iv++) {
+      (*dtau)[iv] = calloc ((*nch)[iv], sizeof(double *));
+      for (iq=0;iq<(*nch)[iv];iq++)
+	(*dtau)[iv][iq] = calloc (nlyr, sizeof(double));
+    }
+  }
+
+  /* convert 1D Fortran array to 2D and 3D C arrays */
   j=0;
   for (iv=0; iv<*nbnd; iv++)
     for (iq=0; iq<kch; iq++) {
@@ -175,14 +183,6 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
 	(*wgt)[*nbnd-1-iv][iq] = wgt_fortran[j];
       j++;
     }
-  
-  *dtau = calloc (*nbnd, sizeof(double **));
-  for (iv=0;iv<*nbnd;iv++) {
-    (*dtau)[iv] = calloc ((*nch)[iv], sizeof(double *));
-    for (iq=0;iq<(*nch)[iv];iq++)
-      (*dtau)[iv][iq] = calloc (nlyr, sizeof(double));
-  }
-
 
   j=0;
   for (iv=0;iv<*nbnd;iv++)
@@ -192,7 +192,6 @@ int ck_mstrnx (double *zb, double *pb, double *tb, double *h2o, double *o3, int 
 	  (*dtau)[*nbnd-1-iv][iq][ilyr] = dtau_fortran[j];
 	j++;
       }
-
 
   /* restrict layer optical thickness to taumax, */
   /* otherwise the twostream solution is likely  */
