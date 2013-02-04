@@ -180,11 +180,27 @@ int main() {
   const int mu_counterlimit = (int)(24.0 * 3600 / deltat);
   double* const mu_0 = calloc(mu_counterlimit, sizeof(double));
   int mu_counter;
+
+  // --- start mu_0
+  {
+  double mu_weight = 0;
+
   for(mu_counter=0; mu_counter < mu_counterlimit; mu_counter++) {
     mu_0[mu_counter] = cos( 2.0*M_PI / mu_counterlimit * (mu_counter + mu_counter+1) / 2.0 );
+    if(mu_0[mu_counter] > 0)
+      mu_weight += mu_0[mu_counter];
+  }
+  // weight needs to be adjusted such that it is 0.5 for half of the steps (day-only)
+  mu_weight = mu_weight / (mu_counterlimit/2.0 * 0.5);
+
+  for(mu_counter=0; mu_counter < mu_counterlimit; mu_counter++) {
+    mu_0[mu_counter] = mu_0[mu_counter] / mu_weight;
     printf("mu_0[%d] = %e\n", mu_counter, mu_0[mu_counter]);
   }
   mu_counter = 0;
+  
+  }
+  // --- end mu_0
   
   double* S_0;
   double* omega_0=calloc(nlyr,sizeof(double));
