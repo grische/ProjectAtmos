@@ -16,7 +16,7 @@
 #define M 0.0289644   /* kg / mol */
 #define g 9.8065      /* m/s^2 */
 
-#define PSURF 1000     /* hPa */
+#define PSURF 1000.0  /* hPa */
 
 #define TIME_MAX 3600 * 24 * 360 * 10 /* seconds */
 
